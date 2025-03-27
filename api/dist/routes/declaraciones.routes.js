@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const declaraciones_controller_1 = require("../controller/declaraciones.controller");
+const router = (0, express_1.Router)();
+router.post('/declaraciones', declaraciones_controller_1.DeclaracionesController.crearDeclaracion);
+router.get('/declaraciones', declaraciones_controller_1.DeclaracionesController.obtenerDeclaraciones);
+router.get('/declaraciones/:id', declaraciones_controller_1.DeclaracionesController.obtenerDeclaracionPorId);
+router.put('/declaraciones/:id', declaraciones_controller_1.DeclaracionesController.actualizarDeclaracion);
+router.delete('/declaraciones/:id', declaraciones_controller_1.DeclaracionesController.eliminarDeclaracion);
+exports.default = router;
