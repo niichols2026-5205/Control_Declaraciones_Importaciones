@@ -1,0 +1,13 @@
+# Node.js
+node_modules/
+.env
+
+# Build y dependencias
+dist/
+build/
+*.log
+
+# IDEs y sistema operativo
+.vscode/
+.DS_Store
+Thumbs.db
