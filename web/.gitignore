@@ -17,7 +17,7 @@ dist-ssr
 
 # production
 /build
-/vite
+.vite/
 
 # dependencies
 /node_modules
