@@ -10,7 +10,8 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Aumenta el límite de JSON
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Para datos en formularios
 app.use(cors());
 
 // Conectar a MongoDB

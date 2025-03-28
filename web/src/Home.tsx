@@ -20,9 +20,9 @@ function Home() {
           <button className="btn-home" onClick={() => setModalIsOpen(true)}>
             Nuevo
           </button>
-          <button className="btn-imprimir">
+          {/* <button className="btn-imprimir">
             <FaPrint size={20} />
-          </button>
+          </button> */}
         </div>
         <div className="table-container">
           <TableDeclaraciones />

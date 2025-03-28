@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import "./Heder.css";
-import { FiLogOut } from "react-icons/fi"; // Icono de cerrar sesión
+import { Link } from 'react-router-dom';
+import './Heder.css';
+import { FiLogOut } from 'react-icons/fi'; // Icono de cerrar sesión
 
 interface HeaderProps {
   username: string;
@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
       <h1 className="title">Sistema de Gestión de Declaraciones</h1>
       <div className="logout-container">
         <Link to="/" className="logout-btn">
-          <FiLogOut size={24} />
+          <FiLogOut size={20} />
         </Link>
       </div>
     </header>

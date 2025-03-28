@@ -22,11 +22,11 @@ const ConsultarRegistroModal: React.FC<ModalProps> = ({
   if (!registro) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Consultar Registro</DialogTitle>
       <DialogContent>
         <p>
-          <strong>Fecha y Hora:</strong> {registro.fechaHora}
+          <strong>Fecha y Hora:</strong> {registro.createdAt}
         </p>
         <p>
           <strong>Número Declaración:</strong> {registro.numeroDeclaracion}
@@ -35,7 +35,7 @@ const ConsultarRegistroModal: React.FC<ModalProps> = ({
           <strong>Datos Declaración:</strong> {registro.datosDeclaracion}
         </p>
         <p>
-          <strong>Factura:</strong> {registro.factura}
+          <strong>Nombre Archivo:</strong> {registro.archivoDeclaracion}
         </p>
         <p>
           <strong>Proveedor:</strong> {registro.proveedor}
@@ -45,7 +45,10 @@ const ConsultarRegistroModal: React.FC<ModalProps> = ({
         </p>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button
+          onClick={onClose}
+          color="info"
+          style={{ backgroundColor: '#D7D7D7' }}>
           Cerrar
         </Button>
       </DialogActions>

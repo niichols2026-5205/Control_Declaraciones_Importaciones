@@ -1,5 +1,5 @@
 export interface Declaracion {
-  fechaHora: string;
+  _id: string;
   numeroDeclaracion: string;
   datosDeclaracion: string;
   pdfDeclaracion: string;
@@ -9,4 +9,7 @@ export interface Declaracion {
   numeroFactura: string;
   pdfFactura: string;
   idDeclaracion: string;
+  createdAt: string;
+  updatedAt: string;
+  acciones: string;
 }
