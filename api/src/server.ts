@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import declaracionesRoutes from './routes/declaraciones.routes';
+import authRoutes from './routes/auth.routes';
 
 // Cargar variables de entorno
 dotenv.config();
@@ -26,3 +27,6 @@ app.listen(PORT, () => console.log(`Servidor en puerto ${PORT}`));
 
 // Rutas
 app.use('/declaraciones', declaracionesRoutes);
+
+// Usar las rutas de autenticación
+app.use('/auth', authRoutes);

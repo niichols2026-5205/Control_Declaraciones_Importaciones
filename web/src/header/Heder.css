@@ -1,9 +1,9 @@
 .header {
-  width: 100%;
+  width: 99%;
   display: flex;
   align-items: center;
   background-color: #3e4145;
-  padding: 5px px;
+  padding: 5px; /* <- este es el valor correcto */
   color: white;
 }
 
@@ -42,4 +42,15 @@
   padding: 8px 8px;
   border-radius: 10px;
   font-weight: bold;
+}
+
+.table-container {
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.containerHome {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }

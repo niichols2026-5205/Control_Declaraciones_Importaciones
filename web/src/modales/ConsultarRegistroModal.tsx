@@ -6,13 +6,24 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
-import { Declaracion } from './types';
+import { Declaracion } from '../types/types';
 
 interface ModalProps {
   open: boolean;
   onClose: () => void;
   registro: Declaracion | null;
 }
+
+const formatDate = (isoDate: string) => {
+  return new Date(isoDate).toLocaleString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+};
 
 const ConsultarRegistroModal: React.FC<ModalProps> = ({
   open,
@@ -26,7 +37,11 @@ const ConsultarRegistroModal: React.FC<ModalProps> = ({
       <DialogTitle>Consultar Registro</DialogTitle>
       <DialogContent>
         <p>
-          <strong>Fecha y Hora:</strong> {registro.createdAt}
+          <strong>Fecha y Hora:</strong> {formatDate(registro.createdAt)}
+        </p>
+        <p>
+          <strong>Tipo:</strong>{' '}
+          {registro.importadoNacional === 'I' ? 'Importacion' : 'Nacional'}
         </p>
         <p>
           <strong>Número Declaración:</strong> {registro.numeroDeclaracion}
@@ -35,13 +50,26 @@ const ConsultarRegistroModal: React.FC<ModalProps> = ({
           <strong>Datos Declaración:</strong> {registro.datosDeclaracion}
         </p>
         <p>
-          <strong>Nombre Archivo:</strong> {registro.archivoDeclaracion}
+          <strong>Nombre Archivo Declaracion:</strong>{' '}
+          {registro.archivoDeclaracion}
+        </p>
+        <p>
+          <strong>Detalle factura:</strong> {registro.factura}
+        </p>
+        <p>
+          <strong>Nit Proveedor:</strong> {registro.nitProveedor}
         </p>
         <p>
           <strong>Proveedor:</strong> {registro.proveedor}
         </p>
         <p>
           <strong>Número Factura:</strong> {registro.numeroFactura}
+        </p>
+        <p>
+          <strong>Nombre Archivo Factura:</strong> {registro.archivoFactura}
+        </p>
+        <p>
+          <strong>Observaciones:</strong> {registro.observaciones}
         </p>
       </DialogContent>
       <DialogActions>

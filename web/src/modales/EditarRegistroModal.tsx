@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Box, Typography, TextField, Button } from '@mui/material';
-import { Declaracion } from './types';
+import {
+  Modal,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  MenuItem,
+  Grid,
+} from '@mui/material';
+import { Declaracion } from '../types/types';
 
 interface EditarRegistroModalProps {
   open: boolean;
@@ -50,6 +58,25 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
     }
   };
 
+  const handleFileChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (formData) {
+          setFormData({
+            ...formData,
+            archivoFactura: file.name,
+            pdfFactura: reader.result as string, // Guardamos el Base64
+          });
+        }
+      };
+    }
+  };
+
   const handleUpdate = async () => {
     if (!formData) return;
 
@@ -84,7 +111,7 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 400,
+          width: 800,
           bgcolor: 'background.paper',
           boxShadow: 24,
           p: 4,
@@ -95,14 +122,32 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
         </Typography>
         {formData && (
           <>
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Número de Declaración"
-              name="numeroDeclaracion"
-              value={formData.numeroDeclaracion}
-              onChange={handleChange}
-            />
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Tipo"
+                  name="importadoNacional"
+                  value={formData.importadoNacional}
+                  onChange={handleChange}
+                  select>
+                  <MenuItem value="I">Importado</MenuItem>
+                  <MenuItem value="N">Nacional</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Número de Declaración"
+                  name="numeroDeclaracion"
+                  value={formData.numeroDeclaracion}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+
             <TextField
               fullWidth
               margin="normal"
@@ -110,9 +155,15 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
               name="datosDeclaracion"
               value={formData.datosDeclaracion}
               onChange={handleChange}
+              // multiline
+              // minRows={5}
+              // maxRows={12}
+              InputProps={{
+                style: { fontFamily: 'monospace', whiteSpace: 'pre' },
+              }}
             />
             <Typography variant="body1" sx={{ mt: 2 }}>
-              Cargar archivo:
+              Cargar archivo Declaracion:
             </Typography>
             <input type="file" onChange={handleFileChange} />
             {formData.archivoDeclaracion && (
@@ -120,30 +171,70 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
                 Archivo actual: {formData.archivoDeclaracion}
               </Typography>
             )}
-            {formData.pdfDeclaracion && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                <a
-                  href={formData.pdfDeclaracion}
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  Ver archivo
-                </a>
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Detalle Factura"
+              name="factura"
+              value={formData.factura}
+              onChange={handleChange}
+              // multiline
+              // minRows={5}
+              // maxRows={5}
+              InputProps={{
+                style: { fontFamily: 'monospace', whiteSpace: 'pre' },
+              }}
+            />
+
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Nit Proveedor"
+                  name="nitProveedor"
+                  value={formData.nitProveedor}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="Proveedor"
+                  name="proveedor"
+                  value={formData.proveedor}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  label="No. Factura"
+                  name="numeroFactura"
+                  value={formData.numeroFactura}
+                  onChange={handleChange}
+                />
+              </Grid>
+            </Grid>
+
+            <Typography variant="body1" sx={{ mt: 2 }}>
+              Cargar archivo Factura:
+            </Typography>
+            <input type="file" onChange={handleFileChange2} />
+            {formData.archivoFactura && (
+              <Typography variant="body2" sx={{ mt: 1, color: 'gray' }}>
+                Archivo actual: {formData.archivoFactura}
               </Typography>
             )}
+
             <TextField
               fullWidth
               margin="normal"
-              label="Número Factura"
-              name="numeroFactura"
-              value={formData.numeroFactura}
-              onChange={handleChange}
-            />
-            <TextField
-              fullWidth
-              margin="normal"
-              label="Proveedor"
-              name="proveedor"
-              value={formData.proveedor}
+              label="Observaciones"
+              name="observaciones"
+              value={formData.observaciones}
               onChange={handleChange}
             />
             <Box mt={2} display="flex" justifyContent="space-between">
