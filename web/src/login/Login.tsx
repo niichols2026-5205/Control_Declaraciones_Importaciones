@@ -26,6 +26,7 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token); // Guardar token
         localStorage.setItem('username', data.username); // Guardar username
+        localStorage.setItem('roles', data.roles);
         navigate('/home'); // Redirigir a Home
       } else {
         alert('Credenciales incorrectas');

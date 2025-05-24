@@ -1,10 +1,21 @@
 .header {
-  width: 99%;
+  width: 100%;
+  height: 50px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   background-color: #3e4145;
-  padding: 5px; /* <- este es el valor correcto */
+  padding: 2px;
   color: white;
+  border-radius: 10px;
+}
+
+.create-user-btn {
+  background-color: #4e5155;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: bold;
 }
 
 .user-info {
@@ -33,7 +44,7 @@
 }
 
 .logout-container {
-  padding-right: 20px; /* Ajusta el espacio desde el borde derecho */
+  padding-right: 10px; /* Ajusta el espacio desde el borde derecho */
 }
 
 .logout-btn {
@@ -44,13 +55,8 @@
   font-weight: bold;
 }
 
-.table-container {
-  padding: 16px;
-  overflow-x: auto;
-}
-
 .containerHome {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 90vh;
 }

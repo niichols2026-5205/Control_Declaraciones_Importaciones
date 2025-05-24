@@ -12,6 +12,7 @@ import {
 interface NuevoRegistroModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSave: () => void;
 }
 
 const API_URL = 'http://localhost:5000/declaraciones';
@@ -19,6 +20,7 @@ const API_URL = 'http://localhost:5000/declaraciones';
 const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
   isOpen,
   onClose,
+  onSave,
 }) => {
   const [formData, setFormData] = useState({
     importadoNacional: '',
@@ -87,33 +89,38 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
       !formData.importadoNacional ||
       !formData.numeroDeclaracion ||
       !formData.datosDeclaracion ||
-      !formData.archivoDeclaracion ||
+      // !formData.archivoDeclaracion ||
       !formData.factura ||
       !formData.nitProveedor ||
       !formData.proveedor ||
       !formData.numeroFactura ||
-      !formData.pdfFactura ||
-      !formData.archivoFactura ||
+      // !formData.pdfFactura ||
+      // !formData.archivoFactura ||
       !formData.observaciones
     ) {
       alert('Por favor, completa todos los campos obligatorios.');
       return;
     }
+
     try {
+      setLoading(true);
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) throw new Error('Error al guardar el registro');
 
-      console.log('Registro guardado con éxito');
-      onClose();
+      const newRegistro = await response.json();
+      console.log('Registro guardado con éxito:', newRegistro);
+
+      onSave(); // avisamos al padre
+      onClose(); // cerramos modal
     } catch (error) {
       console.error('Error al guardar:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -240,10 +247,10 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
           onChange={handleChange}
         />
 
-        <Box mt={2} display="flex" justifyContent="space-between">
+        <Box mt={2} justifyContent="flex-end" display="flex" gap={2}>
           <Button
+            style={{ background: '#6c757d' }}
             variant="contained"
-            color="secondary"
             onClick={onClose}
             disabled={loading}>
             Cancelar

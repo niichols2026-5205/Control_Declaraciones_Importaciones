@@ -28,19 +28,19 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
 //  Modales
-import ConsultarRegistroModal from '../modales/ConsultarRegistroModal';
 import EditarRegistroModal from '../modales/EditarRegistroModal';
 import NuevoRegistroModal from '../modales/NuevoRegistroModal';
 
 // Importacion de la interfaz
 import { Declaracion } from '../types/types';
 
-//  Librerias excel
+//  Librerias para exportar a excel
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { useNavigate } from 'react-router-dom';
 
 const columns = [
-  { id: 'createdAt', label: 'Fecha/Hora', minWidth: 140 },
+  { id: 'createdAt', label: 'Fecha/Hora', minWidth: 175 },
   { id: 'importadoNacional', label: 'Tipo', minWidth: 50 },
   { id: 'numeroDeclaracion', label: 'No.Declaracion', minWidth: 50 },
   { id: 'datosDeclaracion', label: 'Datos Declaracion', minWidth: 200 },
@@ -51,17 +51,17 @@ const columns = [
   { id: 'proveedor', label: 'Proveedor', minWidth: 150 },
   { id: 'numeroFactura', label: 'No.Factura', minWidth: 90 },
   { id: 'pdfFactura', label: 'PDF.Fact.', minWidth: 50 },
-  { id: 'archivoFactura', label: 'Nombre Arch.Fact.', minWidth: 80 },
+  { id: 'archivoFactura', label: 'Nombre Arch.Fact.', minWidth: 120 },
   { id: 'observaciones', label: 'Observaciones', minWidth: 150 },
-  { id: 'acciones', label: 'Acciones', minWidth: 120, align: 'center' },
+  { id: 'acciones', label: 'Acciones', minWidth: 120 },
 ];
 
 const API_URL = 'http://localhost:5000/declaraciones';
 
 export default function TableDeclaraciones() {
+  const navigate = useNavigate();
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [registroSeleccionado, setRegistroSeleccionado] =
     useState<Declaracion | null>(null);
   const [rows, setRows] = useState<Declaracion[]>([]);
@@ -69,13 +69,14 @@ export default function TableDeclaraciones() {
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [editarModalOpen, setEditarModalOpen] = useState<boolean>(false);
   const formatDate = (isoDate: string) => {
-    return new Date(isoDate).toLocaleString('es-ES', {
+    return new Date(isoDate).toLocaleString('es-CO', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      timeZone: 'UTC', // fuerza UTC
     });
   };
 
@@ -118,9 +119,28 @@ export default function TableDeclaraciones() {
     }
   };
 
-  const handleSaveRegistroEditado = (registroEditado: Declaracion) => {
-    console.log('Registro editado:', registroEditado);
-    // Aquí podrías actualizar el estado o hacer una llamada a la API
+  const fetchDeclaraciones = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/declaraciones');
+      const data = await response.json();
+      setRows(data);
+    } catch (error) {
+      console.error('Error al obtener las declaraciones:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeclaraciones();
+  }, []);
+
+  // este se llama cuando se guarda en el modal
+  const handleSaveRegistroEditado = async () => {
+    await fetchDeclaraciones(); // recarga la tabla
+  };
+
+  // este se llama cuando se guarda en el modal
+  const handleSaveRegistroNuevo = async () => {
+    await fetchDeclaraciones(); // vuelve a cargar la tabla
   };
 
   const getFileIcon = (fileData: string, fileName: string) => {
@@ -211,16 +231,6 @@ export default function TableDeclaraciones() {
     ),
   );
 
-  const handleOpenModal = (registro: Declaracion) => {
-    setRegistroSeleccionado(registro);
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setRegistroSeleccionado(null);
-  };
-
   const handleOpenEditarModal = (registro: Declaracion) => {
     setRegistroSeleccionado(registro);
     setEditarModalOpen(true);
@@ -233,7 +243,7 @@ export default function TableDeclaraciones() {
 
   return (
     <Paper sx={{ width: '100%', overflowX: 'auto' }}>
-      <Box display="flex" justifyContent="flex-end" paddingTop={3}>
+      <Box display="flex" justifyContent="flex-end" paddingTop={1}>
         <div>
           <Tooltip title="Nuevo">
             <Button
@@ -267,7 +277,7 @@ export default function TableDeclaraciones() {
         </div>
       </Box>
       <Box sx={{ minWidth: 1200 }}>
-        <TableContainer sx={{ maxHeight: 550 }}>
+        <TableContainer sx={{ maxHeight: 570 }}>
           <Table stickyHeader aria-label="sticky table">
             <TableHead>
               <TableRow>
@@ -278,9 +288,16 @@ export default function TableDeclaraciones() {
                       minWidth: column.minWidth,
                       background: '#2092b2',
                       color: 'white',
+                      ...(column.id === 'acciones' && {
+                        position: 'sticky',
+                        right: 0,
+                        zIndex: 2, // zIndex más alto para que se vea sobre las filas
+                        background: '#2092b2',
+                        textAlign: 'center',
+                      }),
                     }}>
                     {column.label}
-                    {column.id !== 'acciones' && ( // Evita filtros en la columna de acciones
+                    {column.id !== 'acciones' && (
                       <TextField
                         variant="standard"
                         size="small"
@@ -313,7 +330,17 @@ export default function TableDeclaraciones() {
                     {columns.map(column => {
                       if (column.id === 'acciones') {
                         return (
-                          <TableCell key={column.id} align="center">
+                          <TableCell
+                            key={column.id}
+                            align="center"
+                            sx={{
+                              position: 'sticky',
+                              right: 0,
+                              backgroundColor: '#f9f9f9',
+                              ...(rowIndex % 2 === 0 && {
+                                backgroundColor: '#f9f9f9',
+                              }),
+                            }}>
                             <IconButton
                               color="primary"
                               aria-label="Editar"
@@ -323,7 +350,9 @@ export default function TableDeclaraciones() {
                             <IconButton
                               color="info"
                               aria-label="Consultar"
-                              onClick={() => handleOpenModal(row)}>
+                              onClick={() =>
+                                navigate(`/home/detalle/${row._id}`)
+                              }>
                               <VisibilityIcon />
                             </IconButton>
                             <IconButton
@@ -357,6 +386,16 @@ export default function TableDeclaraciones() {
                         <TableCell key={column.id}>
                           {column.id === 'createdAt'
                             ? formatDate(value)
+                            : column.id === 'factura' &&
+                              typeof value === 'string'
+                            ? `${value.substring(0, 40)}${
+                                value.length > 40 ? '...' : ''
+                              }`
+                            : column.id === 'datosDeclaracion' &&
+                              typeof value === 'string'
+                            ? `${value.substring(0, 50)}${
+                                value.length > 50 ? '...' : ''
+                              }`
                             : value}
                         </TableCell>
                       );
@@ -375,11 +414,10 @@ export default function TableDeclaraciones() {
         page={page}
         onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={event => setRowsPerPage(+event.target.value)}
-      />
-      <ConsultarRegistroModal
-        open={modalOpen}
-        onClose={handleCloseModal}
-        registro={registroSeleccionado}
+        labelRowsPerPage="Filas por página"
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+        }
       />
       <EditarRegistroModal
         open={editarModalOpen}
@@ -390,6 +428,7 @@ export default function TableDeclaraciones() {
       <NuevoRegistroModal
         isOpen={modalIsOpen}
         onClose={() => setModalIsOpen(false)}
+        onSave={handleSaveRegistroNuevo}
       />
     </Paper>
   );

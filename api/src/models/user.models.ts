@@ -1,9 +1,10 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   username: string;
   password: string;
+  roles: Types.ObjectId[];
   comparePassword: (password: string) => Promise<boolean>;
 }
 
@@ -11,6 +12,12 @@ const UserSchema = new Schema<IUser>(
   {
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    roles: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'roles', // nombre del modelo de roles
+      },
+    ],
   },
   {
     timestamps: true,

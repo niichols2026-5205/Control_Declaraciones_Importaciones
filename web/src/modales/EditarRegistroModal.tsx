@@ -237,10 +237,10 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
               value={formData.observaciones}
               onChange={handleChange}
             />
-            <Box mt={2} display="flex" justifyContent="space-between">
+            <Box mt={2} justifyContent="flex-end" display="flex" gap={2}>
               <Button
+                style={{ background: '#6c757d' }}
                 variant="contained"
-                color="secondary"
                 onClick={onClose}
                 disabled={loading}>
                 Cancelar
