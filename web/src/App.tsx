@@ -5,7 +5,7 @@ import ConsultarRegistroModal from './modales/ConsultarRegistroModal';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/controlfacturas">
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
