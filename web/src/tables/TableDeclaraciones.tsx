@@ -56,7 +56,7 @@ const columns = [
   { id: 'acciones', label: 'Acciones', minWidth: 120 },
 ];
 
-const API_URL = 'http://localhost:5000/declaraciones';
+const API_URL = `${import.meta.env.VITE_API_URL}/declaraciones`;
 
 export default function TableDeclaraciones() {
   const navigate = useNavigate();
@@ -121,7 +121,9 @@ export default function TableDeclaraciones() {
 
   const fetchDeclaraciones = async () => {
     try {
-      const response = await fetch('http://localhost:5000/declaraciones');
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/declaraciones`,
+      );
       const data = await response.json();
       setRows(data);
     } catch (error) {
@@ -143,7 +145,7 @@ export default function TableDeclaraciones() {
     await fetchDeclaraciones(); // vuelve a cargar la tabla
   };
 
-  const getFileIcon = (fileData: string, fileName: string) => {
+  const getFileIcon = (fileData: string, _fileName: string) => {
     const handleOpenFile = () => {
       if (fileData.startsWith('data:')) {
         // Convertir Base64 a Blob

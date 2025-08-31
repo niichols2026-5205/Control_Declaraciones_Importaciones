@@ -22,7 +22,9 @@ const DetalleRegistroPage: React.FC = () => {
   useEffect(() => {
     const fetchRegistro = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/declaraciones/${id}`);
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/declaraciones/${id}`,
+        );
         const data = await res.json();
         setRegistro(data);
       } catch (error) {

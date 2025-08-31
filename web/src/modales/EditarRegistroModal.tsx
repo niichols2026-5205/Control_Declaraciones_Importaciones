@@ -17,7 +17,7 @@ interface EditarRegistroModalProps {
   onSave: (registroEditado: Declaracion) => void;
 }
 
-const API_URL = 'http://localhost:5000/declaraciones';
+const API_URL = `${import.meta.env.VITE_API_URL}/declaraciones`;
 
 const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
   open,

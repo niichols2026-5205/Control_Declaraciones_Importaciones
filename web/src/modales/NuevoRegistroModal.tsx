@@ -15,7 +15,7 @@ interface NuevoRegistroModalProps {
   onSave: () => void;
 }
 
-const API_URL = 'http://localhost:5000/declaraciones';
+const API_URL = `${import.meta.env.VITE_API_URL}/declaraciones`;
 
 const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
   isOpen,
