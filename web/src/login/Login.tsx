@@ -32,7 +32,7 @@ const Login = () => {
         localStorage.setItem('roles', data.roles);
         navigate('/home'); // Redirigir a Home
       } else {
-        alert('Credenciales incorrectas');
+        alert(data.error || 'Credenciales incorrectas');
       }
     } catch (error) {
       console.error('Error en la autenticación:', error);
@@ -79,7 +79,7 @@ const Login = () => {
         </p> */}
       </div>
       <p className="footer-text">
-        Copyright © SkyFlash - 2025. Todos los derechos reservados
+        Copyright © SkyFlash - 2026. Todos los derechos reservados
       </p>
     </div>
   );

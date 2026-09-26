@@ -8,11 +8,12 @@ export interface Declaracion {
   factura: string;
   nitProveedor: string;
   proveedor: string;
-  numeroFactura: string;
-  pdfFactura: string;
-  archivoFactura: string;
+  pais?: string;
+  numeroFactura?: string;
+  pdfFactura?: string;
+  archivoFactura?: string;
   observaciones: string;
   createdAt: string;
   updatedAt: string;
-  acciones: string;
+  acciones?: string;
 }

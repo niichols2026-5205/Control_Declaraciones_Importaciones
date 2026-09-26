@@ -112,9 +112,12 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 800,
+          maxWidth: '92vw',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           bgcolor: 'background.paper',
           boxShadow: 24,
-          p: 4,
+          p: { xs: 2.5, sm: 4 },
           borderRadius: 2,
         }}>
         <Typography variant="h6" gutterBottom color="text.primary">
@@ -155,11 +158,11 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
               name="datosDeclaracion"
               value={formData.datosDeclaracion}
               onChange={handleChange}
-              // multiline
-              // minRows={5}
-              // maxRows={12}
+              multiline
+              minRows={2}
+              maxRows={4}
               InputProps={{
-                style: { fontFamily: 'monospace', whiteSpace: 'pre' },
+                style: { fontFamily: 'monospace', whiteSpace: 'pre-wrap' },
               }}
             />
             <Typography variant="body1" sx={{ mt: 2 }}>
@@ -178,11 +181,11 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
               name="factura"
               value={formData.factura}
               onChange={handleChange}
-              // multiline
-              // minRows={5}
-              // maxRows={5}
+              multiline
+              minRows={3}
+              maxRows={6}
               InputProps={{
-                style: { fontFamily: 'monospace', whiteSpace: 'pre' },
+                style: { fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
               }}
             />
 
@@ -211,23 +214,13 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
                 <TextField
                   fullWidth
                   margin="normal"
-                  label="No. Factura"
-                  name="numeroFactura"
-                  value={formData.numeroFactura}
+                  label="País"
+                  name="pais"
+                  value={formData.pais || ''}
                   onChange={handleChange}
                 />
               </Grid>
             </Grid>
-
-            <Typography variant="body1" sx={{ mt: 2 }}>
-              Cargar archivo Factura:
-            </Typography>
-            <input type="file" onChange={handleFileChange2} />
-            {formData.archivoFactura && (
-              <Typography variant="body2" sx={{ mt: 1, color: 'gray' }}>
-                Archivo actual: {formData.archivoFactura}
-              </Typography>
-            )}
 
             <TextField
               fullWidth

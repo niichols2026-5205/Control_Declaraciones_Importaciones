@@ -1,9 +1,39 @@
 import { Router } from 'express';
-import { registerUser, loginUser } from '../services/auth.services';
+import {
+  registerUser,
+  loginUser,
+  getAllUsers,
+  updateUser,
+  toggleUserStatus,
+  getRoles,
+} from '../services/auth.services';
+import { verifyToken, isAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
-router.post('/register', async (req, res) => {
+// Inicio de sesión (público)
+router.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const result = await loginUser(username, password);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Obtener listado de usuarios (Sólo Admin)
+router.get('/users', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.status(200).json(users);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Crear usuario (Sólo Admin)
+router.post('/users', verifyToken, isAdmin, async (req, res) => {
   try {
     const { username, password, role } = req.body;
     const result = await registerUser(username, password, role);
@@ -13,13 +43,48 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+// Endpoint legado /register por compatibilidad
+router.post('/register', verifyToken, isAdmin, async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const result = await loginUser(username, password);
+    const { username, password, role } = req.body;
+    const result = await registerUser(username, password, role);
+    res.status(201).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Editar datos de un usuario (Sólo Admin)
+router.put('/users/:id', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requestingUsername = (req as any).user?.username;
+    const result = await updateUser(id, req.body, requestingUsername);
     res.status(200).json(result);
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// Alternar estado activo/inactivo (Sólo Admin)
+router.patch('/users/:id/status', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requestingUsername = (req as any).user?.username;
+    const result = await toggleUserStatus(id, requestingUsername);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Listar roles disponibles
+router.get('/roles', verifyToken, async (req, res) => {
+  try {
+    const roles = await getRoles();
+    res.status(200).json(roles);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 });
 

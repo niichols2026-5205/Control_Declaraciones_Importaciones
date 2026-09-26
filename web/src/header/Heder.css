@@ -1,62 +1,243 @@
-.header {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #3e4145;
-  padding: 2px;
-  color: white;
-  border-radius: 10px;
-}
-
-.create-user-btn {
-  background-color: #4e5155;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.user-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 10px;
-  margin-left: 10px;
-}
-
-.username {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.title {
-  flex-grow: 1;
-  text-align: center;
-  font-size: 27px;
-  font-weight: bold;
-}
-
-.logout-container {
-  padding-right: 10px; /* Ajusta el espacio desde el borde derecho */
-}
-
-.logout-btn {
-  background-color: rgb(201, 46, 46);
-  color: white;
-  padding: 8px 8px;
-  border-radius: 10px;
-  font-weight: bold;
-}
-
+/* Contenedor principal de la vista Home */
 .containerHome {
   display: flex;
   flex-direction: column;
-  min-height: 90vh;
+  min-height: 95vh;
+  padding: 16px 24px;
+  background-color: #f8fafc;
+  box-sizing: border-box;
+}
+
+.table-container {
+  width: 100%;
+}
+
+/* Header moderno con degradado Slate y sombras sutiles */
+.modern-header {
+  width: 100%;
+  min-height: 68px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 10px 24px;
+  color: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.25), 0 8px 10px -6px rgba(15, 23, 42, 0.2);
+  margin-bottom: 22px;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Lado izquierdo: Marca y título */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.brand-texts {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.brand-subtitle {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Lado derecho: Acciones y perfil */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Tarjeta del perfil de usuario */
+.user-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 14px 6px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  transition: all 0.2s ease;
+}
+
+.user-profile-card:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.user-avatar-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  border: 2px solid #0f172a;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f8fafc;
+  line-height: 1.2;
+}
+
+.user-role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.role-admin {
+  color: #38bdf8;
+}
+
+.role-user {
+  color: #94a3b8;
+}
+
+/* Separador visual */
+.header-divider {
+  width: 1px;
+  height: 28px;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Botones de acción base */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  outline: none;
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+}
+
+/* Botón Crear Usuario (Admin) */
+.create-user-action {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.create-user-action:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+/* Botón Salir / Cerrar Sesión */
+.logout-action {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.logout-action:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  transform: translateY(-1px);
+}
+
+.logout-action:active,
+.create-user-action:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modern-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-divider {
+    display: none;
+  }
+
+  .btn-text {
+    display: none;
+  }
+
+  .action-btn {
+    padding: 8px 12px;
+  }
 }

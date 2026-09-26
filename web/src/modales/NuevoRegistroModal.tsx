@@ -31,6 +31,7 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
     factura: '',
     nitProveedor: '',
     proveedor: '',
+    pais: '',
     numeroFactura: '',
     pdfFactura: '',
     archivoFactura: '',
@@ -93,9 +94,6 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
       !formData.factura ||
       !formData.nitProveedor ||
       !formData.proveedor ||
-      !formData.numeroFactura ||
-      // !formData.pdfFactura ||
-      // !formData.archivoFactura ||
       !formData.observaciones
     ) {
       alert('Por favor, completa todos los campos obligatorios.');
@@ -133,9 +131,12 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: 800,
+          maxWidth: '92vw',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           bgcolor: 'background.paper',
           boxShadow: 24,
-          p: 4,
+          p: { xs: 2.5, sm: 4 },
           borderRadius: 2,
         }}>
         <Typography variant="h6" gutterBottom color="text.primary">
@@ -193,7 +194,9 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
           name="factura"
           value={formData.factura}
           onChange={handleChange}
-          rows={4}
+          multiline
+          minRows={3}
+          maxRows={6}
         />
 
         <Grid container spacing={2}>
@@ -221,23 +224,13 @@ const NuevoRegistroModal: React.FC<NuevoRegistroModalProps> = ({
             <TextField
               fullWidth
               margin="normal"
-              label="Numero Factura"
-              name="numeroFactura"
-              value={formData.numeroFactura}
+              label="País"
+              name="pais"
+              value={formData.pais}
               onChange={handleChange}
             />
           </Grid>
         </Grid>
-
-        <Typography variant="body1" sx={{ mt: 2 }}>
-          Cargar archivo Factura:
-        </Typography>
-        <input type="file" onChange={handleFileChange2} />
-        {formData.archivoFactura && (
-          <Typography variant="body2" sx={{ mt: 1, color: 'gray' }}>
-            Archivo seleccionado: {formData.archivoFactura}
-          </Typography>
-        )}
         <TextField
           fullWidth
           margin="normal"

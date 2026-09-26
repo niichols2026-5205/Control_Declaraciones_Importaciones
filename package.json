@@ -1,4 +1,14 @@
 {
+  "name": "control-facturacion-citymerk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:api": "npm run dev --prefix api",
+    "dev:web": "npm run dev --prefix web",
+    "dev": "concurrently -n \"API,WEB\" -c \"cyan,magenta\" \"npm run dev:api\" \"npm run dev:web\"",
+    "build:api": "npm run build --prefix api",
+    "build:web": "npm run build --prefix web"
+  },
   "dependencies": {
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mongoose": "^11.0.3",
@@ -9,6 +19,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
-    "@types/jsonwebtoken": "^9.0.9"
+    "@types/jsonwebtoken": "^9.0.9",
+    "concurrently": "^10.0.5"
   }
 }

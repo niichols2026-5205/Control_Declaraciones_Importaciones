@@ -12,6 +12,12 @@ export class DeclaracionesService {
     return await nuevaDeclaracion.save();
   }
 
+  static async bulkCreateDeclaraciones(
+    data: IDeclaraciones[],
+  ): Promise<IDeclaraciones[]> {
+    return await Declaraciones.insertMany(data);
+  }
+
   static async findOneDeclaracion(id: string): Promise<IDeclaraciones | null> {
     return await Declaraciones.findById(id);
   }

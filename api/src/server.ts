@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import declaracionesRoutes from './routes/declaraciones.routes';
 import authRoutes from './routes/auth.routes';
 
+import { ensureDefaultRoles } from './services/auth.services';
+
 // Cargar variables de entorno
 dotenv.config();
 
@@ -18,7 +20,10 @@ app.use(cors());
 // Conectar a MongoDB
 mongoose
   .connect(process.env.MONGO_URI as string)
-  .then(() => console.log('Conectado a MongoDB'))
+  .then(async () => {
+    console.log('Conectado a MongoDB');
+    await ensureDefaultRoles();
+  })
   .catch(err => console.error('Error de conexión:', err));
 
 // Iniciar servidor

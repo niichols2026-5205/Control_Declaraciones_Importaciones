@@ -10,6 +10,7 @@ export interface IDeclaraciones extends Document {
   factura?: string; //text
   nitProveedor?: string;
   proveedor?: string;
+  pais?: string;
   numeroFactura?: string;
   pdfFactura?: string;
   archivoFactura?: string;
@@ -27,10 +28,11 @@ const DeclaracionesSchema = new Schema<IDeclaraciones>(
     factura: { type: String, required: true },
     nitProveedor: { type: String, required: true },
     proveedor: { type: String, required: true },
-    numeroFactura: { type: String, required: true },
+    pais: { type: String, required: false },
+    numeroFactura: { type: String, required: false },
     pdfFactura: { type: String, required: false },
     archivoFactura: { type: String, required: false },
-    observaciones: { type: String, required: true, unique: true },
+    observaciones: { type: String, required: false, default: '' },
   },
   {
     timestamps: {
