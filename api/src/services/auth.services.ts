@@ -14,6 +14,21 @@ export const ensureDefaultRoles = async () => {
         await Role.create({ name: roleName });
       }
     }
+
+    // Si la base de datos es nueva y no tiene usuarios, crear usuario administrador por defecto
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      const adminRole = await Role.findOne({ name: 'admin' });
+      if (adminRole) {
+        await User.create({
+          username: 'admin',
+          password: 'admin123',
+          roles: [adminRole._id],
+          activo: true,
+        });
+        console.log('✅ Base de datos inicializada: Usuario admin creado (admin / admin123)');
+      }
+    }
   } catch (error) {
     console.error('Error al verificar/inicializar roles:', error);
   }
