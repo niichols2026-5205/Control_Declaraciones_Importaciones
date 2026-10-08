@@ -33,21 +33,31 @@ export const ensureDefaultRoles = async () => {
       console.log('✅ Compañía creada: SI R&R');
     }
 
-    // 3. Usuario Administrador para "Pruebas" (usuario: adm / clave: admin123)
-    let admUser = await User.findOne({ username: 'adm' });
-    if (!admUser) {
-      admUser = new User({
-        username: 'adm',
-        password: 'admin123',
+    // 3. Usuario Administrador para "Pruebas" (usuario: PRUEBAS / clave: PRUEBAS)
+    let pruebasUser = await User.findOne({
+      $or: [
+        { username: { $regex: /^pruebas$/i } },
+        { username: 'adm' },
+      ],
+    });
+    if (!pruebasUser) {
+      pruebasUser = new User({
+        username: 'PRUEBAS',
+        password: 'PRUEBAS',
         roles: adminRole ? [adminRole._id] : [],
         company: pruebasCompany._id,
         activo: true,
       });
-      await admUser.save();
-      console.log('✅ Usuario administrador creado: adm (Compañía: Pruebas)');
-    } else if (!admUser.company) {
-      admUser.company = pruebasCompany._id as any;
-      await admUser.save();
+      await pruebasUser.save();
+      console.log('✅ Usuario administrador creado: PRUEBAS (Compañía: Pruebas)');
+    } else {
+      pruebasUser.username = 'PRUEBAS';
+      pruebasUser.password = 'PRUEBAS';
+      pruebasUser.company = pruebasCompany._id as any;
+      pruebasUser.roles = adminRole ? [adminRole._id as any] : pruebasUser.roles;
+      pruebasUser.activo = true;
+      await pruebasUser.save();
+      console.log('✅ Usuario administrador actualizado: PRUEBAS / PRUEBAS (Compañía: Pruebas)');
     }
 
     // 4. Usuario Administrador para "SI R&R" (usuario: admin / clave: admin123)
