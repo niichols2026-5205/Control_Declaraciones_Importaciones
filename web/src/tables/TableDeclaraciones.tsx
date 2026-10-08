@@ -88,15 +88,20 @@ export default function TableDeclaraciones() {
 
   const formatDate = (isoDate: string) => {
     if (!isoDate) return '-';
-    return new Date(isoDate).toLocaleString('es-CO', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: 'UTC',
-    });
+    try {
+      return new Date(isoDate).toLocaleString('es-CO', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: 'America/Bogota',
+        hour12: true,
+      });
+    } catch {
+      return String(isoDate);
+    }
   };
 
   const fetchDeclaraciones = async () => {
@@ -913,9 +918,29 @@ export default function TableDeclaraciones() {
                                 padding: '12px 14px',
                                 borderBottom: '1px solid #f1f5f9',
                               }}>
-                              {column.id === 'createdAt'
-                                ? formatDate(value)
-                                : column.id === 'numeroDeclaracion'
+                              {column.id === 'createdAt' ? (
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontSize: '0.84rem', color: '#334155' }}>
+                                    {formatDate(value)}
+                                  </Typography>
+                                  {row.updatedAt && row.updatedAt !== row.createdAt && (
+                                    <Tooltip title={`Última modificación: ${formatDate(row.updatedAt)}`}>
+                                      <Typography
+                                        component="span"
+                                        variant="caption"
+                                        sx={{
+                                          color: '#0284c7',
+                                          fontSize: '0.72rem',
+                                          fontWeight: 600,
+                                          cursor: 'help',
+                                          display: 'inline-block',
+                                        }}>
+                                        ✎ Modificado
+                                      </Typography>
+                                    </Tooltip>
+                                  )}
+                                </Box>
+                              ) : column.id === 'numeroDeclaracion'
                                 ? (
                                   <Typography
                                     component="span"

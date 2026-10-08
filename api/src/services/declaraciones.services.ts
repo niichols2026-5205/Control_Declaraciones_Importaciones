@@ -26,7 +26,9 @@ export class DeclaracionesService {
     id: string,
     data: Partial<IDeclaraciones>,
   ): Promise<IDeclaraciones | null> {
-    return await Declaraciones.findByIdAndUpdate(id, data, { new: true });
+    const { _id, createdAt, ...updateFields } = data as any;
+    updateFields.updatedAt = new Date();
+    return await Declaraciones.findByIdAndUpdate(id, updateFields, { new: true });
   }
 
   static async deleteDeclaracion(id: string): Promise<IDeclaraciones | null> {

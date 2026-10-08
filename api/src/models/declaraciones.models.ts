@@ -35,12 +35,7 @@ const DeclaracionesSchema = new Schema<IDeclaraciones>(
     observaciones: { type: String, required: false, default: '' },
   },
   {
-    timestamps: {
-      currentTime: () => {
-        const now = new Date();
-        return new Date(now.getTime() - 5 * 60 * 60 * 1000);
-      },
-    },
+    timestamps: true,
     versionKey: false,
   },
 );

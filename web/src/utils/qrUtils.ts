@@ -24,10 +24,12 @@ export const formatShortDate = (isoDate?: string): string => {
   if (!isoDate) return '-';
   try {
     const d = new Date(isoDate);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    return d.toLocaleDateString('es-CO', {
+      timeZone: 'America/Bogota',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   } catch {
     return isoDate;
   }

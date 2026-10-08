@@ -19,16 +19,22 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import DescargarQRModal from './DescargarQRModal';
 
-const formatDate = (isoDate: string) => {
+const formatDate = (isoDate?: string) => {
   if (!isoDate) return '-';
-  return new Date(isoDate).toLocaleString('es-CO', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
+  try {
+    return new Date(isoDate).toLocaleString('es-CO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZone: 'America/Bogota',
+      hour12: true,
+    });
+  } catch {
+    return String(isoDate);
+  }
 };
 
 const DetalleRegistroPage: React.FC = () => {
@@ -177,7 +183,7 @@ const DetalleRegistroPage: React.FC = () => {
           }}>
           <Grid container spacing={1.5}>
             {/* Fecha y Tipo */}
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: registro.updatedAt && registro.updatedAt !== registro.createdAt ? 4 : 6 }}>
               <Typography variant="caption" color="textSecondary" display="block">
                 Fecha y Hora de Creación
               </Typography>
@@ -185,7 +191,19 @@ const DetalleRegistroPage: React.FC = () => {
                 {formatDate(registro.createdAt)}
               </Typography>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+
+            {registro.updatedAt && registro.updatedAt !== registro.createdAt && (
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Typography variant="caption" color="textSecondary" display="block">
+                  Última Modificación
+                </Typography>
+                <Typography variant="body2" fontWeight="500" sx={{ color: '#0284c7' }}>
+                  {formatDate(registro.updatedAt)}
+                </Typography>
+              </Grid>
+            )}
+
+            <Grid size={{ xs: 12, sm: registro.updatedAt && registro.updatedAt !== registro.createdAt ? 4 : 6 }}>
               <Typography variant="caption" color="textSecondary" display="block">
                 Tipo de Operación
               </Typography>
