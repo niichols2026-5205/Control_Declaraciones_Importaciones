@@ -1,8 +1,8 @@
 import Declaraciones, { IDeclaraciones } from '../models/declaraciones.models';
 
 export class DeclaracionesService {
-  static async findAllDeclaraciones(): Promise<IDeclaraciones[]> {
-    return await Declaraciones.find().sort({ createdAt: -1 });
+  static async findAllDeclaraciones(filter: any = {}): Promise<IDeclaraciones[]> {
+    return await Declaraciones.find(filter).sort({ createdAt: -1 });
   }
 
   static async createDeclaracion(

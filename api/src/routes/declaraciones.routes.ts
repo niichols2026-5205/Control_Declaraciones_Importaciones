@@ -6,16 +6,21 @@ import findAllDeclaraciones from '../controller/findAllDeclaracion.controller';
 import updateDeclaracion from '../controller/updateDeclaracion.controller';
 import deleteDeclaracion from '../controller/deleteDeclaracion.controller';
 
+import { verifyToken } from '../middlewares/authMiddleware';
+
 const router = express.Router();
 
-router.route('/').post(crearteDeclaracion).get(findAllDeclaraciones);
+router
+  .route('/')
+  .post(verifyToken, crearteDeclaracion)
+  .get(verifyToken, findAllDeclaraciones);
 
-router.post('/bulk', bulkCreateDeclaracion);
+router.post('/bulk', verifyToken, bulkCreateDeclaracion);
 
 router
   .route('/:id')
-  .get(findOneDeclaracion)
-  .put(updateDeclaracion)
-  .delete(deleteDeclaracion);
+  .get(findOneDeclaracion) // Público para permitir consulta mediante escaneo de código QR
+  .put(verifyToken, updateDeclaracion)
+  .delete(verifyToken, deleteDeclaracion);
 
 export default router;

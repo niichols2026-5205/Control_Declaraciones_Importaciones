@@ -50,6 +50,8 @@ export interface UserItem {
   _id: string;
   username: string;
   roles: string[];
+  companyId?: string;
+  companyName?: string;
   activo: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -88,6 +90,7 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
   const [updating, setUpdating] = useState<boolean>(false);
 
   const currentLoggedInUser = localStorage.getItem('username') || '';
+  const currentCompany = localStorage.getItem('companyName') || '';
 
   const fetchUsers = async () => {
     try {
@@ -322,11 +325,26 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
               <PeopleAltIcon />
             </Box>
             <Box>
-              <Typography variant="h6" fontWeight="700" fontSize="1.15rem">
-                Gestión de Usuarios y Roles
-              </Typography>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="h6" fontWeight="700" fontSize="1.15rem">
+                  Gestión de Usuarios y Roles
+                </Typography>
+                {currentCompany && (
+                  <Chip
+                    label={`Compañía: ${currentCompany}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                      color: '#38bdf8',
+                      fontWeight: 700,
+                      fontSize: '0.72rem',
+                      height: '22px',
+                    }}
+                  />
+                )}
+              </Box>
               <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
-                Administración de cuentas, permisos de rol y control de accesos
+                Administración de cuentas para {currentCompany || 'el sistema'}
               </Typography>
             </Box>
           </Box>

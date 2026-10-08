@@ -13,7 +13,16 @@ const bulkCreateDeclaracion = async (
         .json({ error: 'Se debe enviar una lista no vacía de registros.' });
     }
 
-    const res = await DeclaracionesService.bulkCreateDeclaraciones(records);
+    const user = (req as any).user;
+    const enrichedRecords = records.map((r: any) => ({
+      ...r,
+      company: user?.companyId,
+      companyName: user?.companyName,
+      createdBy: user?.id,
+      createdByName: user?.username,
+    }));
+
+    const res = await DeclaracionesService.bulkCreateDeclaraciones(enrichedRecords);
     return response.status(200).json({
       message: 'Registros creados exitosamente',
       count: res.length,

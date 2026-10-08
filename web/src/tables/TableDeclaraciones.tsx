@@ -106,7 +106,10 @@ export default function TableDeclaraciones() {
 
   const fetchDeclaraciones = async () => {
     try {
-      const response = await fetch(API_URL);
+      const token = localStorage.getItem('token');
+      const response = await fetch(API_URL, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await response.json();
       if (Array.isArray(data)) {
         setRows(data);
@@ -154,8 +157,10 @@ export default function TableDeclaraciones() {
     }
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/${registro._id}`, {
         method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!response.ok) {
@@ -923,8 +928,18 @@ export default function TableDeclaraciones() {
                                   <Typography variant="body2" sx={{ fontSize: '0.84rem', color: '#334155' }}>
                                     {formatDate(value)}
                                   </Typography>
+                                  {row.createdByName && (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block' }}>
+                                      Por: {row.createdByName}
+                                    </Typography>
+                                  )}
                                   {row.updatedAt && row.updatedAt !== row.createdAt && (
-                                    <Tooltip title={`Última modificación: ${formatDate(row.updatedAt)}`}>
+                                    <Tooltip
+                                      title={`Última modificación: ${formatDate(row.updatedAt)}${
+                                        row.updatedByName ? ` por ${row.updatedByName}` : ''
+                                      }`}>
                                       <Typography
                                         component="span"
                                         variant="caption"
@@ -935,7 +950,7 @@ export default function TableDeclaraciones() {
                                           cursor: 'help',
                                           display: 'inline-block',
                                         }}>
-                                        ✎ Modificado
+                                        ✎ Modificado {row.updatedByName ? `(${row.updatedByName})` : ''}
                                       </Typography>
                                     </Tooltip>
                                   )}

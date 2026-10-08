@@ -7,7 +7,13 @@ const updateDeclaracion = async (
 ): Promise<any> => {
   try {
     const { id } = req.params;
-    const res = await DeclaracionesService.updateDeclaracion(id, req.body);
+    const user = (req as any).user;
+    const updateData = {
+      ...req.body,
+      updatedBy: user?.id,
+      updatedByName: user?.username,
+    };
+    const res = await DeclaracionesService.updateDeclaracion(id, updateData);
     if (!res) {
       return response
         .status(404)

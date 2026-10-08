@@ -6,7 +6,12 @@ const findAllDeclaraciones = async (
   response: Response,
 ): Promise<any> => {
   try {
-    const res = await DeclaracionesService.findAllDeclaraciones();
+    const user = (req as any).user;
+    const filter: any = {};
+    if (user && user.companyId) {
+      filter.company = user.companyId;
+    }
+    const res = await DeclaracionesService.findAllDeclaraciones(filter);
     return response.status(200).json(res);
   } catch (error) {
     console.log(error);

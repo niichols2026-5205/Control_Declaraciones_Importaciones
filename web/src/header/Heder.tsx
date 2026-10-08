@@ -14,12 +14,15 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
   const navigate = useNavigate();
 
   const role = localStorage.getItem('roles') || '';
+  const companyName = localStorage.getItem('companyName') || '';
   const initial = username ? username.charAt(0).toUpperCase() : 'U';
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('roles');
+    localStorage.removeItem('companyName');
+    localStorage.removeItem('companyId');
     navigate('/');
   };
 
@@ -30,7 +33,9 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
         <div className="brand-logo-badge">CF</div>
         <div className="brand-texts">
           <h1 className="brand-title">Control de Facturación</h1>
-          <span className="brand-subtitle">Citymerk • Gestión y Declaraciones</span>
+          <span className="brand-subtitle">
+            {companyName ? `Empresa: ${companyName}` : 'Citymerk • Gestión y Declaraciones'}
+          </span>
         </div>
       </div>
 
@@ -44,9 +49,25 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
           </div>
           <div className="user-details">
             <span className="user-name">{username}</span>
-            <span className={`user-role-badge ${role === 'admin' ? 'role-admin' : 'role-user'}`}>
-              {role === 'admin' ? 'Administrador' : 'Operador'}
-            </span>
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px' }}>
+              <span className={`user-role-badge ${role === 'admin' ? 'role-admin' : 'role-user'}`}>
+                {role === 'admin' ? 'Administrador' : 'Operador'}
+              </span>
+              {companyName && (
+                <span
+                  style={{
+                    backgroundColor: '#e0f2fe',
+                    color: '#0369a1',
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    padding: '1px 6px',
+                    borderRadius: '4px',
+                    border: '1px solid #bae6fd',
+                  }}>
+                  {companyName}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

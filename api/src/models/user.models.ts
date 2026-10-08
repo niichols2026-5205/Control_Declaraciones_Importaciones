@@ -5,6 +5,7 @@ export interface IUser extends Document {
   username: string;
   password: string;
   roles: Types.ObjectId[];
+  company?: Types.ObjectId;
   activo: boolean;
   comparePassword: (password: string) => Promise<boolean>;
 }
@@ -19,6 +20,11 @@ const UserSchema = new Schema<IUser>(
         ref: 'roles', // nombre del modelo de roles
       },
     ],
+    company: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      required: false,
+    },
     activo: { type: Boolean, default: true },
   },
   {

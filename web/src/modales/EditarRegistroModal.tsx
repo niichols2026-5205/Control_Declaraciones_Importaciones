@@ -82,9 +82,13 @@ const EditarRegistroModal: React.FC<EditarRegistroModalProps> = ({
 
     setLoading(true);
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(`${API_URL}/${formData._id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(formData),
       });
 

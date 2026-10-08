@@ -30,6 +30,8 @@ const Login = () => {
         localStorage.setItem('token', data.token); // Guardar token
         localStorage.setItem('username', data.username); // Guardar username
         localStorage.setItem('roles', data.roles);
+        localStorage.setItem('companyName', data.company?.name || '');
+        localStorage.setItem('companyId', data.company?._id || '');
         navigate('/home'); // Redirigir a Home
       } else {
         alert(data.error || 'Credenciales incorrectas');

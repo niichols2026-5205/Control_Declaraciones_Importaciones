@@ -190,6 +190,11 @@ const DetalleRegistroPage: React.FC = () => {
               <Typography variant="body2" fontWeight="500">
                 {formatDate(registro.createdAt)}
               </Typography>
+              {registro.createdByName && (
+                <Typography variant="caption" sx={{ color: '#0369a1', fontWeight: 600, display: 'block' }}>
+                  Por: {registro.createdByName}
+                </Typography>
+              )}
             </Grid>
 
             {registro.updatedAt && registro.updatedAt !== registro.createdAt && (
@@ -200,6 +205,11 @@ const DetalleRegistroPage: React.FC = () => {
                 <Typography variant="body2" fontWeight="500" sx={{ color: '#0284c7' }}>
                   {formatDate(registro.updatedAt)}
                 </Typography>
+                {registro.updatedByName && (
+                  <Typography variant="caption" sx={{ color: '#0369a1', fontWeight: 600, display: 'block' }}>
+                    Por: {registro.updatedByName}
+                  </Typography>
+                )}
               </Grid>
             )}
 
@@ -207,13 +217,28 @@ const DetalleRegistroPage: React.FC = () => {
               <Typography variant="caption" color="textSecondary" display="block">
                 Tipo de Operación
               </Typography>
-              <Chip
-                label={registro.importadoNacional === 'I' ? 'Importación' : 'Nacional'}
-                color={registro.importadoNacional === 'I' ? 'primary' : 'success'}
-                size="small"
-                variant="outlined"
-                sx={{ fontWeight: 'bold', marginTop: '2px', height: '22px', fontSize: '0.72rem' }}
-              />
+              <Box display="flex" gap={0.75} alignItems="center" mt={0.25} flexWrap="wrap">
+                <Chip
+                  label={registro.importadoNacional === 'I' ? 'Importación' : 'Nacional'}
+                  color={registro.importadoNacional === 'I' ? 'primary' : 'success'}
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontWeight: 'bold', height: '22px', fontSize: '0.72rem' }}
+                />
+                {registro.companyName && (
+                  <Chip
+                    label={`🏢 ${registro.companyName}`}
+                    size="small"
+                    sx={{
+                      backgroundColor: '#e0f2fe',
+                      color: '#0369a1',
+                      fontWeight: 700,
+                      height: '22px',
+                      fontSize: '0.72rem',
+                    }}
+                  />
+                )}
+              </Box>
             </Grid>
 
             <Grid size={{ xs: 12 }}>
