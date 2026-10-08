@@ -17,6 +17,12 @@ import {
   InputAdornment,
   Typography,
   Checkbox,
+  Card,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 
 //  Icons
@@ -36,6 +42,8 @@ import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import GridViewIcon from '@mui/icons-material/GridView';
+import TableRowsIcon from '@mui/icons-material/TableRows';
 
 //  Modales
 import EditarRegistroModal from '../modales/EditarRegistroModal';
@@ -79,6 +87,19 @@ export default function TableDeclaraciones() {
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [editarModalOpen, setEditarModalOpen] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
+  const [globalSearch, setGlobalSearch] = useState<string>('');
+
+  useEffect(() => {
+    if (isMobile) {
+      setViewMode('cards');
+    } else {
+      setViewMode('table');
+    }
+  }, [isMobile]);
 
   // Estados para selección múltiple y descarga de Códigos QR
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -289,8 +310,28 @@ export default function TableDeclaraciones() {
     saveAs(excelBlob, `${fileName}.xlsx`);
   };
 
-  const filteredRows = rows.filter(row =>
-    Object.entries(filters).every(([columnId, filterValue]) => {
+  const filteredRows = rows.filter(row => {
+    // Filtro global rápido
+    if (globalSearch.trim()) {
+      const q = globalSearch.toLowerCase().trim();
+      const matchGlobal =
+        (row.numeroDeclaracion && row.numeroDeclaracion.toLowerCase().includes(q)) ||
+        (row.proveedor && row.proveedor.toLowerCase().includes(q)) ||
+        (row.factura && row.factura.toLowerCase().includes(q)) ||
+        (row.nitProveedor && row.nitProveedor.toLowerCase().includes(q)) ||
+        (row.datosDeclaracion && row.datosDeclaracion.toLowerCase().includes(q)) ||
+        (row.pais && row.pais.toLowerCase().includes(q)) ||
+        (row.observaciones && row.observaciones.toLowerCase().includes(q)) ||
+        (row.createdByName && row.createdByName.toLowerCase().includes(q)) ||
+        (row.updatedByName && row.updatedByName.toLowerCase().includes(q)) ||
+        (row.importadoNacional && (
+          (row.importadoNacional === 'I' && 'importacion'.includes(q)) ||
+          (row.importadoNacional === 'N' && 'nacional'.includes(q))
+        ));
+      if (!matchGlobal) return false;
+    }
+
+    return Object.entries(filters).every(([columnId, filterValue]) => {
       if (!filterValue) return true;
 
       if (columnId === 'createdAt') {
@@ -312,8 +353,8 @@ export default function TableDeclaraciones() {
       }
 
       return (row as any)[columnId]?.toString().toLowerCase().includes(filterValue);
-    }),
-  );
+    });
+  });
 
   const handleOpenEditarModal = (registro: Declaracion) => {
     setRegistroSeleccionado(registro);
@@ -434,8 +475,14 @@ export default function TableDeclaraciones() {
           )}
         </Box>
 
-        {/* Botones de acción */}
-        <Box display="flex" alignItems="center" gap={1.5} flexWrap="wrap">
+        {/* Botones de acción organizados de forma responsiva */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, auto)' },
+            gap: { xs: 1, sm: 1.5 },
+            width: { xs: '100%', sm: 'auto' },
+          }}>
           {/* Botón de descarga masiva de QRs */}
           {selectedIds.length > 0 ? (
             <Tooltip title="Descargar etiquetas PDF o archivo ZIP de las declaraciones seleccionadas">
@@ -449,7 +496,9 @@ export default function TableDeclaraciones() {
                   borderRadius: '10px',
                   background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                   boxShadow: '0 3px 10px rgba(2, 132, 199, 0.3)',
-                  padding: '7px 18px',
+                  padding: { xs: '7px 10px', sm: '7px 18px' },
+                  fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                  width: '100%',
                   '&:hover': {
                     background: 'linear-gradient(135deg, #0369a1 0%, #075985 100%)',
                     boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
@@ -471,7 +520,9 @@ export default function TableDeclaraciones() {
                   borderRadius: '10px',
                   borderColor: '#0284c7',
                   color: '#0284c7',
-                  padding: '7px 16px',
+                  padding: { xs: '7px 10px', sm: '7px 16px' },
+                  fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                  width: '100%',
                   transition: 'all 0.2s',
                   '&:hover': {
                     backgroundColor: '#f0f9ff',
@@ -495,7 +546,9 @@ export default function TableDeclaraciones() {
                 borderRadius: '10px',
                 borderColor: '#0284c7',
                 color: '#0284c7',
-                padding: '7px 16px',
+                padding: { xs: '7px 10px', sm: '7px 16px' },
+                fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                width: '100%',
                 transition: 'all 0.2s',
                 '&:hover': {
                   backgroundColor: '#f0f9ff',
@@ -518,14 +571,16 @@ export default function TableDeclaraciones() {
                 borderRadius: '10px',
                 borderColor: '#10b981',
                 color: '#059669',
-                padding: '7px 16px',
+                padding: { xs: '7px 10px', sm: '7px 16px' },
+                fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                width: '100%',
                 transition: 'all 0.2s',
                 '&:hover': {
                   backgroundColor: '#ecfdf5',
                   borderColor: '#059669',
                 },
               }}>
-              Exportar a Excel
+              Exportar Excel
             </Button>
           </Tooltip>
 
@@ -538,7 +593,9 @@ export default function TableDeclaraciones() {
                 textTransform: 'none',
                 fontWeight: 600,
                 borderRadius: '10px',
-                padding: '7px 18px',
+                padding: { xs: '7px 10px', sm: '7px 18px' },
+                fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                width: '100%',
                 background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                 boxShadow: '0 3px 10px rgba(2, 132, 199, 0.3)',
                 '&:hover': {
@@ -550,12 +607,321 @@ export default function TableDeclaraciones() {
             </Button>
           </Tooltip>
         </Box>
+
+        {/* Buscador global y Selector de vista para móviles */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1.5,
+            width: '100%',
+            mt: 0.5,
+            flexWrap: 'wrap',
+          }}>
+          <TextField
+            placeholder="Buscar por declaración, proveedor, factura..."
+            size="small"
+            value={globalSearch}
+            onChange={e => {
+              setGlobalSearch(e.target.value);
+              setPage(0);
+            }}
+            sx={{
+              flex: 1,
+              minWidth: { xs: '100%', sm: '260px' },
+              backgroundColor: '#ffffff',
+              '& .MuiOutlinedInput-root': { borderRadius: '10px' },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                </InputAdornment>
+              ),
+              endAdornment: globalSearch ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setGlobalSearch('')}>
+                    <ClearIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            }}
+          />
+
+          {isMobile && (
+            <Box display="flex" justifyContent="flex-end" width={{ xs: '100%', sm: 'auto' }}>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(_, next) => next && setViewMode(next)}
+                size="small"
+                sx={{ backgroundColor: '#ffffff', borderRadius: '10px' }}>
+                <ToggleButton
+                  value="cards"
+                  sx={{
+                    textTransform: 'none',
+                    px: 1.5,
+                    py: 0.5,
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    '&.Mui-selected': { backgroundColor: '#e0f2fe', color: '#0284c7' },
+                  }}>
+                  <GridViewIcon sx={{ fontSize: 16, mr: 0.5 }} /> Tarjetas
+                </ToggleButton>
+                <ToggleButton
+                  value="table"
+                  sx={{
+                    textTransform: 'none',
+                    px: 1.5,
+                    py: 0.5,
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    '&.Mui-selected': { backgroundColor: '#e0f2fe', color: '#0284c7' },
+                  }}>
+                  <TableRowsIcon sx={{ fontSize: 16, mr: 0.5 }} /> Tabla
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          )}
+        </Box>
       </Box>
 
-      {/* Contenedor de la tabla */}
-      <Box sx={{ width: '100%', overflowX: 'auto' }}>
-        <TableContainer sx={{ maxHeight: 620 }}>
-          <Table stickyHeader aria-label="tabla declaraciones">
+      {/* Vista de Tarjetas para Dispositivos Móviles */}
+      {viewMode === 'cards' ? (
+        <Box sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: '#f8fafc' }}>
+          {filteredRows.length === 0 ? (
+            <Box textAlign="center" py={6}>
+              <FilterAltOffIcon sx={{ fontSize: 44, color: '#94a3b8' }} />
+              <Typography variant="body1" color="#475569" fontWeight="600" mt={1}>
+                No se encontraron registros
+              </Typography>
+              {(hasActiveFilters || globalSearch) && (
+                <Button
+                  variant="text"
+                  color="primary"
+                  onClick={() => {
+                    handleClearAllFilters();
+                    setGlobalSearch('');
+                  }}
+                  sx={{ textTransform: 'none', fontWeight: 600, mt: 1 }}>
+                  Restablecer filtros
+                </Button>
+              )}
+            </Box>
+          ) : (
+            filteredRows
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((row, idx) => {
+                const isSelected = selectedIds.includes(row._id);
+                const isImport =
+                  row.importadoNacional === 'I' ||
+                  row.importadoNacional?.toLowerCase().includes('imp');
+
+                return (
+                  <Card
+                    key={row._id || idx}
+                    elevation={0}
+                    sx={{
+                      borderRadius: '14px',
+                      border: isSelected ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#f0f9ff' : '#ffffff',
+                      mb: 1.5,
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    }}>
+                    <Box sx={{ p: 1.75 }}>
+                      {/* Cabecera de la Tarjeta */}
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Checkbox
+                            size="small"
+                            checked={isSelected}
+                            onChange={() => handleSelectRowToggle(row._id)}
+                            sx={{ p: 0.25, color: '#94a3b8', '&.Mui-checked': { color: '#0284c7' } }}
+                          />
+                          <Typography
+                            variant="subtitle1"
+                            fontWeight="700"
+                            sx={{ color: '#0f172a', fontSize: '0.98rem' }}>
+                            #{row.numeroDeclaracion || 'Sin número'}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={isImport ? 'Importación' : 'Nacional'}
+                          size="small"
+                          sx={{
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            height: '22px',
+                            backgroundColor: isImport ? '#e0f2fe' : '#dcfce7',
+                            color: isImport ? '#0369a1' : '#15803d',
+                          }}
+                        />
+                      </Box>
+
+                      {/* Cuerpo de datos */}
+                      <Box display="flex" flexDirection="column" gap={0.8} my={1.25}>
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                          <Typography variant="caption" color="textSecondary">
+                            Proveedor:
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            fontWeight="600"
+                            color="#1e293b"
+                            textAlign="right"
+                            sx={{ maxWidth: '65%' }}>
+                            {row.proveedor || '-'} {row.pais ? `(${row.pais})` : ''}
+                          </Typography>
+                        </Box>
+
+                        {row.factura && (
+                          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                            <Typography variant="caption" color="textSecondary">
+                              Factura:
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="#334155"
+                              textAlign="right"
+                              sx={{ maxWidth: '65%', wordBreak: 'break-word', fontSize: '0.82rem' }}>
+                              {row.factura}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                          <Typography variant="caption" color="textSecondary">
+                            Fecha / Creación:
+                          </Typography>
+                          <Box textAlign="right">
+                            <Typography variant="body2" color="#334155" fontSize="0.82rem">
+                              {formatDate(row.createdAt)}
+                            </Typography>
+                            {row.createdByName && (
+                              <Typography
+                                variant="caption"
+                                sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block' }}>
+                                Por: {row.createdByName}
+                              </Typography>
+                            )}
+                            {row.updatedAt && row.updatedAt !== row.createdAt && (
+                              <Typography
+                                variant="caption"
+                                sx={{ color: '#0284c7', fontSize: '0.72rem', fontWeight: 600 }}>
+                                ✎ Modificado {row.updatedByName ? `(${row.updatedByName})` : ''}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+
+                        {row.pdfDeclaracion && (
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mt={0.5}>
+                            <Typography variant="caption" color="textSecondary">
+                              Documento Adjunto:
+                            </Typography>
+                            {getFileIcon(row.pdfDeclaracion, row.archivoDeclaracion)}
+                          </Box>
+                        )}
+                      </Box>
+
+                      <Divider sx={{ my: 1.25 }} />
+
+                      {/* Botones de acción táctiles en fila */}
+                      <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={1}>
+                        <Button
+                          size="small"
+                          onClick={() => navigate(`/home/detalle/${row._id}`)}
+                          sx={{
+                            backgroundColor: '#f0f9ff',
+                            color: '#0284c7',
+                            borderRadius: '8px',
+                            py: 0.75,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            border: '1px solid #bae6fd',
+                          }}>
+                          <VisibilityIcon sx={{ fontSize: 18 }} />
+                          Ver
+                        </Button>
+
+                        <Button
+                          size="small"
+                          onClick={() => handleOpenSingleQR(row)}
+                          sx={{
+                            backgroundColor: '#f0fdf4',
+                            color: '#059669',
+                            borderRadius: '8px',
+                            py: 0.75,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            border: '1px solid #bbf7d0',
+                          }}>
+                          <QrCode2Icon sx={{ fontSize: 18 }} />
+                          QR
+                        </Button>
+
+                        <Button
+                          size="small"
+                          onClick={() => handleOpenEditarModal(row)}
+                          sx={{
+                            backgroundColor: '#fefce8',
+                            color: '#ca8a04',
+                            borderRadius: '8px',
+                            py: 0.75,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            border: '1px solid #fef08a',
+                          }}>
+                          <EditIcon sx={{ fontSize: 18 }} />
+                          Editar
+                        </Button>
+
+                        <Button
+                          size="small"
+                          onClick={() => handleDelete(row)}
+                          sx={{
+                            backgroundColor: '#fef2f2',
+                            color: '#dc2626',
+                            borderRadius: '8px',
+                            py: 0.75,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            border: '1px solid #fecaca',
+                          }}>
+                          <DeleteIcon sx={{ fontSize: 18 }} />
+                          Borrar
+                        </Button>
+                      </Box>
+                    </Box>
+                  </Card>
+                );
+              })
+          )}
+        </Box>
+      ) : (
+        /* Contenedor de la tabla tradicional */
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <TableContainer sx={{ maxHeight: 620 }}>
+            <Table stickyHeader aria-label="tabla declaraciones">
             <TableHead>
               <TableRow>
                 {/* Columna de Checkbox para selección múltiple */}
@@ -606,11 +972,11 @@ export default function TableDeclaraciones() {
                         padding: '12px 14px',
                         borderBottom: '2px solid #334155',
                         ...(isAcciones && {
-                          position: 'sticky',
+                          position: isMobile ? 'static' : 'sticky',
                           right: 0,
                           zIndex: 3,
                           textAlign: 'center',
-                          boxShadow: '-4px 0 8px rgba(0,0,0,0.15)',
+                          boxShadow: isMobile ? 'none' : '-4px 0 8px rgba(0,0,0,0.15)',
                         }),
                       }}>
                       {/* Label de la columna */}
@@ -814,7 +1180,7 @@ export default function TableDeclaraciones() {
                                 key={column.id}
                                 align="center"
                                 sx={{
-                                  position: 'sticky',
+                                  position: isMobile ? 'static' : 'sticky',
                                   right: 0,
                                   zIndex: 1,
                                   backgroundColor: isSelected
@@ -822,8 +1188,8 @@ export default function TableDeclaraciones() {
                                     : isEven
                                     ? '#ffffff'
                                     : '#f8fafc',
-                                  borderLeft: '1px solid #e2e8f0',
-                                  boxShadow: '-4px 0 8px rgba(0,0,0,0.03)',
+                                  borderLeft: isMobile ? 'none' : '1px solid #e2e8f0',
+                                  boxShadow: isMobile ? 'none' : '-4px 0 8px rgba(0,0,0,0.03)',
                                   padding: '8px 10px',
                                 }}>
                                 <Box display="flex" justifyContent="center" gap={0.5}>
@@ -979,6 +1345,7 @@ export default function TableDeclaraciones() {
           </Table>
         </TableContainer>
       </Box>
+      )}
 
       {/* Paginación */}
       <TablePagination
