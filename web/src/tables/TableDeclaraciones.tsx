@@ -510,7 +510,7 @@ export default function TableDeclaraciones() {
             <Button
               variant="outlined"
               color="success"
-              onClick={() => exportToExcel(filteredRows, 'Declaraciones_Citymerk')}
+              onClick={() => exportToExcel(filteredRows, 'Declaraciones_Conexion_DK')}
               startIcon={<DownloadIcon />}
               sx={{
                 textTransform: 'none',

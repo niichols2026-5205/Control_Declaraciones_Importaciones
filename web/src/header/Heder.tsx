@@ -30,11 +30,11 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
     <header className="modern-header">
       {/* Lado izquierdo: Identidad del sistema */}
       <div className="header-brand">
-        <div className="brand-logo-badge">CF</div>
+        <div className="brand-logo-badge">DK</div>
         <div className="brand-texts">
-          <h1 className="brand-title">Control de Facturación</h1>
+          <h1 className="brand-title">Conexión DK</h1>
           <span className="brand-subtitle">
-            {companyName ? `Empresa: ${companyName}` : 'Citymerk • Gestión y Declaraciones'}
+            {companyName ? `Empresa: ${companyName}` : 'Control de Facturación y Declaraciones'}
           </span>
         </div>
       </div>

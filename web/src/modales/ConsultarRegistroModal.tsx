@@ -157,7 +157,7 @@ const DetalleRegistroPage: React.FC = () => {
               Consulta de Registro
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.9, display: 'block' }}>
-              Control de Facturación - Declaración
+              Conexión DK • Control de Facturación y Declaraciones
             </Typography>
           </Box>
           <Chip

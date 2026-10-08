@@ -57,7 +57,7 @@ const Login = () => {
             <img src={reactLogo} className="logo react" alt="React logo" />
           </a>
         </div>
-        <h1>SkyFlash</h1>
+        <h1>Conexión DK</h1>
         <h3>Iniciar Sesión</h3>
         <input
           type="text"
@@ -81,7 +81,7 @@ const Login = () => {
         </p> */}
       </div>
       <p className="footer-text">
-        Copyright © SkyFlash - 2026. Todos los derechos reservados
+        Copyright © Conexión DK - 2026. Todos los derechos reservados
       </p>
     </div>
   );
