@@ -275,3 +275,5 @@ Esto lanzará concurrentemente:
    - `npm run build` de Vite elimina por completo el directorio `web/dist/` antes de recompilar. La carpeta que sirve Nginx en el VPS debe ser siempre `/var/www/control_declaraciones/web/public_html` con un symlink apuntando a `dist`, nunca al revés.
 6. **Diseño Responsivo en Celulares**:
    - Mantener la vista de **Tarjetas móviles (`Card View`)** como vista preferente en pantallas con ancho menor a 768px para evitar que la tabla de 12 columnas se comprima.
+7. **Registro Obligatorio en la Bitácora de Cambios**:
+   - Cada modificación, adición o ajuste de código debe documentarse en **[HISTORIAL_CAMBIOS.md](./HISTORIAL_CAMBIOS.md)** indicando el motivo, archivos tocados y precauciones para no alterar procesos previos.

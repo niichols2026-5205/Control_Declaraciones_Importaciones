@@ -25,3 +25,7 @@ Antes de proponer o ejecutar cambios en la arquitectura, base de datos, rutas o 
 
 5. **Flujo de Despliegue en el Servidor (VPS)**:
    - Cambios subidos a `main` se despliegan en el VPS ejecutando el comando: `actualizar` (o `/root/actualizar.sh`).
+
+6. **Obligatoriedad de Documentar Cambios en la Bitácora**:
+   - Cada vez que se implemente una nueva característica, ajuste o corrección de bugs, **se DEBE registrar en [HISTORIAL_CAMBIOS.md](./HISTORIAL_CAMBIOS.md)** indicando: Fecha, Tipo, Motivo, Archivos modificados e Impacto/Prevención.
+   - Esto evita romper funcionalidades anteriores ya ajustadas (como la zona horaria de Colombia, la ruta pública de QR o el aislamiento multi-tenant).

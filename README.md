@@ -8,7 +8,8 @@ Plataforma integral para el control, trazabilidad, generación de etiquetas QR y
 
 Toda la documentación técnica detallada de arquitectura, modelos de base de datos, endpoints de API, infraestructura VPS, reglas multi-compañía y comandos de despliegue se encuentra disponible en:
 
-👉 **[DOCUMENTACION_SISTEMA.md](./DOCUMENTACION_SISTEMA.md)**
+👉 **[DOCUMENTACION_SISTEMA.md](./DOCUMENTACION_SISTEMA.md)**  
+📜 **[HISTORIAL_CAMBIOS.md](./HISTORIAL_CAMBIOS.md)** *(Bitácora de cambios y versiones)*
 
 ---
 
