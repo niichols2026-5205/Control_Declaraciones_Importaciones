@@ -21,6 +21,20 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-10-17] - Indicador de Carga (Loading Spinner) y Control de Estado Vacío
+- **Tipo:** Mejora de UX / Feedback Visual
+- **Motivo / Necesidad:** Al cargar o consultar la vista principal, la tabla mostraba prematuramente el mensaje "No se encontraron registros" y el badge "0 registros" mientras la petición GET a `/declaraciones` estaba en curso, generando un parpadeo visual molesto antes de mostrar los datos reales.
+- **Archivos Modificados:**
+  - `web/src/tables/TableDeclaraciones.tsx`
+- **Detalle de la Solución:**
+  1. Se agregó el estado `loading = true` inicial y manejo mediante `try / finally` en `fetchDeclaraciones()`.
+  2. En el encabezado, el badge muestra `"Cargando..."` mientras la petición está en curso.
+  3. En la tabla (y en la vista móvil de tarjetas), mientras `loading` sea `true`, se muestra un `CircularProgress` azul con el texto `"Cargando declaraciones..."`.
+  4. Solo cuando la petición finaliza y efectivamente no hay registros (`!loading && filteredRows.length === 0`), se muestra `"No se encontraron registros"`.
+- **Impacto y Prevención:** Mejora la experiencia de usuario y evita falsos avisos de "sin registros". No afecta la estructura de datos ni las llamadas al backend.
+
+---
+
 ### [2026-10-17] - Creación de Documentación Integral y Bitácora de Auditoría
 - **Tipo:** Documentación / Directrices de Desarrollo
 - **Motivo / Necesidad:** Disponer de todo el contexto de arquitectura, modelos, rutas, despliegue y reglas críticas en un único lugar para responder de forma rápida, precisa y sin afectar procesos previos en futuras modificaciones.

@@ -23,6 +23,7 @@ import {
   useMediaQuery,
   ToggleButton,
   ToggleButtonGroup,
+  CircularProgress,
 } from '@mui/material';
 
 //  Icons
@@ -83,6 +84,7 @@ export default function TableDeclaraciones() {
   const [registroSeleccionado, setRegistroSeleccionado] =
     useState<Declaracion | null>(null);
   const [rows, setRows] = useState<Declaracion[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [editarModalOpen, setEditarModalOpen] = useState<boolean>(false);
@@ -126,6 +128,7 @@ export default function TableDeclaraciones() {
   };
 
   const fetchDeclaraciones = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(API_URL, {
@@ -134,9 +137,14 @@ export default function TableDeclaraciones() {
       const data = await response.json();
       if (Array.isArray(data)) {
         setRows(data);
+      } else {
+        setRows([]);
       }
     } catch (error) {
       console.error('Error al obtener las declaraciones:', error);
+      setRows([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -430,13 +438,17 @@ export default function TableDeclaraciones() {
             Declaraciones de Importación y Facturas
           </Typography>
           <Chip
-            label={`${filteredRows.length} ${
-              filteredRows.length === 1 ? 'registro' : 'registros'
-            }`}
+            label={
+              loading
+                ? 'Cargando...'
+                : `${filteredRows.length} ${
+                    filteredRows.length === 1 ? 'registro' : 'registros'
+                  }`
+            }
             size="small"
             sx={{
-              backgroundColor: '#e0f2fe',
-              color: '#0369a1',
+              backgroundColor: loading ? '#f1f5f9' : '#e0f2fe',
+              color: loading ? '#64748b' : '#0369a1',
               fontWeight: 600,
               fontSize: '0.78rem',
             }}
@@ -690,11 +702,29 @@ export default function TableDeclaraciones() {
       {/* Vista de Tarjetas para Dispositivos Móviles */}
       {viewMode === 'cards' ? (
         <Box sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: '#f8fafc' }}>
-          {filteredRows.length === 0 ? (
+          {loading ? (
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              py={8}
+              gap={1.5}>
+              <CircularProgress size={38} sx={{ color: '#0284c7' }} />
+              <Typography variant="body2" color="#64748b" fontWeight="600">
+                Cargando declaraciones...
+              </Typography>
+            </Box>
+          ) : filteredRows.length === 0 ? (
             <Box textAlign="center" py={6}>
               <FilterAltOffIcon sx={{ fontSize: 44, color: '#94a3b8' }} />
               <Typography variant="body1" color="#475569" fontWeight="600" mt={1}>
                 No se encontraron registros
+              </Typography>
+              <Typography variant="body2" color="#94a3b8" maxWidth={360} mx="auto" mt={0.5}>
+                {hasActiveFilters || globalSearch
+                  ? 'No hay declaraciones que coincidan con la búsqueda o filtros aplicados.'
+                  : 'Aún no hay declaraciones registradas en el sistema.'}
               </Typography>
               {(hasActiveFilters || globalSearch) && (
                 <Button
@@ -1100,7 +1130,23 @@ export default function TableDeclaraciones() {
             </TableHead>
 
             <TableBody>
-              {filteredRows.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 8 }}>
+                    <Box
+                      display="flex"
+                      flexDirection="column"
+                      alignItems="center"
+                      justifyContent="center"
+                      gap={1.5}>
+                      <CircularProgress size={42} sx={{ color: '#0284c7' }} />
+                      <Typography variant="body1" color="#64748b" fontWeight="600">
+                        Cargando declaraciones...
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : filteredRows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={columns.length + 1} align="center" sx={{ py: 8 }}>
                     <Box display="flex" flexDirection="column" alignItems="center" gap={1.5}>
@@ -1109,15 +1155,18 @@ export default function TableDeclaraciones() {
                         No se encontraron registros
                       </Typography>
                       <Typography variant="body2" color="#94a3b8" maxWidth={400}>
-                        {hasActiveFilters
+                        {hasActiveFilters || globalSearch
                           ? 'No hay declaraciones que coincidan con los filtros aplicados.'
                           : 'Aún no hay declaraciones registradas en el sistema.'}
                       </Typography>
-                      {hasActiveFilters && (
+                      {(hasActiveFilters || globalSearch) && (
                         <Button
                           variant="text"
                           color="primary"
-                          onClick={handleClearAllFilters}
+                          onClick={() => {
+                            handleClearAllFilters();
+                            setGlobalSearch('');
+                          }}
                           sx={{ textTransform: 'none', fontWeight: 600, mt: 1 }}>
                           Restablecer todos los filtros
                         </Button>
