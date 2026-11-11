@@ -21,6 +21,22 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-11] - Inactivación y Reactivación de Códigos QR (Entrega / Fin de Transporte)
+- **Tipo:** Feature / Seguridad y Trazabilidad Operativa
+- **Motivo / Necesidad:** El cliente requería poder inactivar los códigos QR cuando la mercancía ya fue transportada o entregada, para que al escanear el QR físico no siga disponible públicamente, con opción de inactivar en bloque o de forma individual, y poder reactivarlo si es necesario.
+- **Archivos Modificados:**
+  - `api/src/models/declaraciones.models.ts` (Nuevos campos `qrActivo`, `fechaInactivacion`, `inactivadoPor`)
+  - `api/src/services/declaraciones.services.ts` (Método `toggleQrStatus` con filtro multi-tenant)
+  - `api/src/controller/toggleQrDeclaracion.controller.ts` (Nuevo controlador)
+  - `api/src/controller/findOneDeclaracion.controller.ts` (Oculta adjuntos confidenciales cuando `qrActivo === false`)
+  - `api/src/routes/declaraciones.routes.ts` (Rutas `PATCH /toggle-qr` y `POST /toggle-qr`)
+  - `web/src/types/types.ts` (Actualización de interfaz `Declaracion`)
+  - `web/src/modales/ConsultarRegistroModal.tsx` (Pantalla de bloqueo para escaneos públicos de QR inactivo con mensaje `🔒 CÓDIGO QR FINALIZADO - La consulta pública de esta mercancía ya no se encuentra disponible`, y visor con opción de reactivar para usuarios autenticados)
+  - `web/src/tables/TableDeclaraciones.tsx` (Columna `Estado QR` con Chip Activo/Inactivo, barra contextual de acciones en bloque `🔒 Inactivar QRs (X)` y `🔓 Reactivar QRs (X)`, botón de toggle en fila y tarjeta móvil, y soporte en exportación Excel)
+- **Impacto y Prevención:** La ruta de consulta sigue siendo pública sin token (`GET /declaraciones/:id`), pero si el registro tiene `qrActivo === false`, el frontend bloquea la consulta y el backend no envía los PDFs. Se mantiene 100% el aislamiento multi-tenant por `companyId`.
+
+---
+
 ### [2026-10-17] - Indicador de Carga (Loading Spinner) y Control de Estado Vacío
 - **Tipo:** Mejora de UX / Feedback Visual
 - **Motivo / Necesidad:** Al cargar o consultar la vista principal, la tabla mostraba prematuramente el mensaje "No se encontraron registros" y el badge "0 registros" mientras la petición GET a `/declaraciones` estaba en curso, generando un parpadeo visual molesto antes de mostrar los datos reales.

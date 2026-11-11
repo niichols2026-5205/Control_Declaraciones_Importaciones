@@ -21,6 +21,9 @@ export interface IDeclaraciones extends Document {
   createdByName?: string;
   updatedBy?: Types.ObjectId;
   updatedByName?: string;
+  qrActivo?: boolean;
+  fechaInactivacion?: Date;
+  inactivadoPor?: string;
   updatedAt?: Date;
 }
 
@@ -45,6 +48,9 @@ const DeclaracionesSchema = new Schema<IDeclaraciones>(
     createdByName: { type: String, required: false },
     updatedBy: { type: Schema.Types.ObjectId, ref: 'users', required: false },
     updatedByName: { type: String, required: false },
+    qrActivo: { type: Boolean, default: true },
+    fechaInactivacion: { type: Date, required: false },
+    inactivadoPor: { type: String, required: false },
   },
   {
     timestamps: true,

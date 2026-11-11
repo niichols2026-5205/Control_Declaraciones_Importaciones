@@ -34,4 +34,32 @@ export class DeclaracionesService {
   static async deleteDeclaracion(id: string): Promise<IDeclaraciones | null> {
     return await Declaraciones.findByIdAndDelete(id);
   }
+
+  static async toggleQrStatus(
+    ids: string[],
+    qrActivo: boolean,
+    userName?: string,
+    companyId?: string,
+  ): Promise<any> {
+    const filter: any = { _id: { $in: ids } };
+    if (companyId) {
+      filter.company = companyId;
+    }
+
+    const updateFields: any = {
+      qrActivo,
+      updatedAt: new Date(),
+      updatedByName: userName,
+    };
+
+    if (!qrActivo) {
+      updateFields.fechaInactivacion = new Date();
+      updateFields.inactivadoPor = userName || 'Usuario';
+    } else {
+      updateFields.fechaInactivacion = null;
+      updateFields.inactivadoPor = null;
+    }
+
+    return await Declaraciones.updateMany(filter, { $set: updateFields });
+  }
 }

@@ -17,6 +17,8 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import DescargarQRModal from './DescargarQRModal';
 
 const formatDate = (isoDate?: string) => {
@@ -55,6 +57,29 @@ const DetalleRegistroPage: React.FC = () => {
 
   // Determinar si el usuario tiene sesión activa o es un visitante por QR
   const isAuthenticated = Boolean(localStorage.getItem('token'));
+
+  const handleToggleQr = async (nuevoEstado: boolean) => {
+    if (!registro) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/declaraciones/toggle-qr`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ ids: [registro._id], qrActivo: nuevoEstado }),
+        },
+      );
+      if (res.ok) {
+        setRegistro(prev => (prev ? { ...prev, qrActivo: nuevoEstado } : null));
+      }
+    } catch (e) {
+      console.error('Error al cambiar estado del QR:', e);
+    }
+  };
 
   useEffect(() => {
     const fetchRegistro = async () => {
@@ -112,6 +137,79 @@ const DetalleRegistroPage: React.FC = () => {
         <Typography variant="body2" color="textSecondary">
           El código QR o enlace escaneado no corresponde a ninguna declaración registrada.
         </Typography>
+      </Box>
+    );
+  }
+
+  // Si el código QR está inactivo y es un visitante público (escaneo físico sin login)
+  if (registro.qrActivo === false && !isAuthenticated) {
+    return (
+      <Box
+        sx={{
+          padding: '1.5rem',
+          maxWidth: '520px',
+          margin: 'auto',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box',
+          backgroundColor: '#f8fafc',
+        }}>
+        <Card
+          elevation={4}
+          sx={{
+            width: '100%',
+            borderRadius: '24px',
+            overflow: 'hidden',
+            backgroundColor: '#ffffff',
+            textAlign: 'center',
+            border: '1px solid #fee2e2',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+            p: { xs: 3.5, sm: 5 },
+          }}>
+          <Box
+            sx={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              backgroundColor: '#fef2f2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem auto',
+              border: '2px solid #fecaca',
+            }}>
+            <LockIcon sx={{ fontSize: 44 }} />
+          </Box>
+          <Typography
+            variant="h5"
+            fontWeight="800"
+            color="#1e293b"
+            sx={{ letterSpacing: '-0.02em', mb: 1.5 }}>
+            🔒 CÓDIGO QR FINALIZADO
+          </Typography>
+          <Typography
+            variant="body1"
+            color="#64748b"
+            sx={{ fontSize: '1rem', lineHeight: 1.6, maxWidth: 380, margin: '0 auto 1.5rem auto' }}>
+            La consulta pública de esta mercancía ya no se encuentra disponible
+          </Typography>
+
+          <Divider sx={{ my: 2.5 }} />
+
+          <Box display="flex" flexDirection="column" gap={0.5} alignItems="center">
+            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+              Conexión DK • Sistema de Control y Trazabilidad
+            </Typography>
+            {registro.numeroDeclaracion && (
+              <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
+                Ref: {registro.numeroDeclaracion}
+              </Typography>
+            )}
+          </Box>
+        </Card>
       </Box>
     );
   }
@@ -181,6 +279,78 @@ const DetalleRegistroPage: React.FC = () => {
             '&::-webkit-scrollbar': { width: '6px' },
             '&::-webkit-scrollbar-thumb': { backgroundColor: '#cbd5e1', borderRadius: '4px' },
           }}>
+          {/* Banner de Estado del QR para usuarios autenticados */}
+          {registro.qrActivo === false && (
+            <Box
+              sx={{
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '12px',
+                p: 1.5,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1.5,
+              }}>
+              <Box display="flex" alignItems="center" gap={1.25}>
+                <LockIcon sx={{ color: '#dc2626', fontSize: 24 }} />
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#991b1b', fontWeight: 700 }}>
+                    Código QR Inactivo (Mercancía entregada)
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#b91c1c' }}>
+                    La consulta pública por escaneo está bloqueada para este registro.
+                  </Typography>
+                </Box>
+              </Box>
+              {isAuthenticated && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  startIcon={<LockOpenIcon />}
+                  onClick={() => handleToggleQr(true)}
+                  sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600 }}>
+                  Reactivar QR
+                </Button>
+              )}
+            </Box>
+          )}
+
+          {isAuthenticated && registro.qrActivo !== false && (
+            <Box
+              sx={{
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '12px',
+                p: 1.25,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1.5,
+              }}>
+              <Box display="flex" alignItems="center" gap={1}>
+                <CheckCircleOutlineIcon sx={{ color: '#16a34a', fontSize: 22 }} />
+                <Typography variant="body2" sx={{ color: '#166534', fontWeight: 600 }}>
+                  Código QR Activo y disponible para escaneo público.
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                variant="outlined"
+                color="error"
+                startIcon={<LockIcon />}
+                onClick={() => handleToggleQr(false)}
+                sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600 }}>
+                Inactivar QR
+              </Button>
+            </Box>
+          )}
+
           <Grid container spacing={1.5}>
             {/* Fecha y Tipo */}
             <Grid size={{ xs: 12, sm: registro.updatedAt && registro.updatedAt !== registro.createdAt ? 4 : 6 }}>

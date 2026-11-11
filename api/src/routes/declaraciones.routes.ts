@@ -5,6 +5,7 @@ import findOneDeclaracion from '../controller/findOneDeclaracion.controller';
 import findAllDeclaraciones from '../controller/findAllDeclaracion.controller';
 import updateDeclaracion from '../controller/updateDeclaracion.controller';
 import deleteDeclaracion from '../controller/deleteDeclaracion.controller';
+import toggleQrDeclaracion from '../controller/toggleQrDeclaracion.controller';
 
 import { verifyToken } from '../middlewares/authMiddleware';
 
@@ -16,6 +17,8 @@ router
   .get(verifyToken, findAllDeclaraciones);
 
 router.post('/bulk', verifyToken, bulkCreateDeclaracion);
+router.patch('/toggle-qr', verifyToken, toggleQrDeclaracion);
+router.post('/toggle-qr', verifyToken, toggleQrDeclaracion);
 
 router
   .route('/:id')

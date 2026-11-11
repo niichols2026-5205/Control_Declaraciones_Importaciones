@@ -19,6 +19,9 @@ export interface Declaracion {
   createdByName?: string;
   updatedBy?: string;
   updatedByName?: string;
+  qrActivo?: boolean;
+  fechaInactivacion?: string;
+  inactivadoPor?: string;
   createdAt: string;
   updatedAt: string;
   acciones?: string;

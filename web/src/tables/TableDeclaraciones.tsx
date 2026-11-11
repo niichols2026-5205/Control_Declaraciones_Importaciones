@@ -45,6 +45,9 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import GridViewIcon from '@mui/icons-material/GridView';
 import TableRowsIcon from '@mui/icons-material/TableRows';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 //  Modales
 import EditarRegistroModal from '../modales/EditarRegistroModal';
@@ -62,6 +65,7 @@ import { useNavigate } from 'react-router-dom';
 
 const columns = [
   { id: 'createdAt', label: 'Fecha/Hora', minWidth: 185 },
+  { id: 'qrActivo', label: 'Estado QR', minWidth: 120 },
   { id: 'importadoNacional', label: 'Tipo', minWidth: 110 },
   { id: 'numeroDeclaracion', label: 'No. Declaración', minWidth: 150 },
   { id: 'datosDeclaracion', label: 'Datos Declaración', minWidth: 200 },
@@ -72,7 +76,7 @@ const columns = [
   { id: 'proveedor', label: 'Proveedor', minWidth: 160 },
   { id: 'pais', label: 'País', minWidth: 130 },
   { id: 'observaciones', label: 'Observaciones', minWidth: 170 },
-  { id: 'acciones', label: 'Acciones', minWidth: 175 },
+  { id: 'acciones', label: 'Acciones', minWidth: 210 },
 ];
 
 const API_URL = `${import.meta.env.VITE_API_URL}/declaraciones`;
@@ -202,6 +206,54 @@ export default function TableDeclaraciones() {
     }
   };
 
+  const handleToggleQrStatus = async (idsToToggle: string[], nuevoEstado: boolean) => {
+    if (!idsToToggle || idsToToggle.length === 0) return;
+
+    const actionText = nuevoEstado ? 'reactivar' : 'inactivar';
+    const confirmMessage =
+      idsToToggle.length === 1
+        ? `¿Estás seguro de que deseas ${actionText} este código QR?`
+        : `¿Estás seguro de que deseas ${actionText} los ${idsToToggle.length} códigos QR seleccionados?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/toggle-qr`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ ids: idsToToggle, qrActivo: nuevoEstado }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar el estado del QR');
+      }
+
+      setRows(prevRows =>
+        prevRows.map(row =>
+          idsToToggle.includes(row._id)
+            ? {
+                ...row,
+                qrActivo: nuevoEstado,
+                fechaInactivacion: nuevoEstado ? undefined : new Date().toISOString(),
+              }
+            : row,
+        ),
+      );
+
+      // Remover de seleccionados
+      setSelectedIds(prev => prev.filter(id => !idsToToggle.includes(id)));
+    } catch (error) {
+      console.error('Error al cambiar el estado del QR:', error);
+      alert('Hubo un error al cambiar el estado del código QR.');
+    }
+  };
+
   const handleSaveRegistroEditado = async () => {
     await fetchDeclaraciones();
   };
@@ -294,7 +346,11 @@ export default function TableDeclaraciones() {
       ({ _id, pdfDeclaracion, pdfFactura, updatedAt, acciones, ...rest }) => {
         const newRow: Record<string, any> = {};
         Object.keys(rest).forEach(key => {
-          newRow[columnMap[key] || key] = rest[key as keyof typeof rest];
+          let val = rest[key as keyof typeof rest];
+          if (key === 'qrActivo') {
+            val = val !== false ? 'Activo' : 'Inactivo';
+          }
+          newRow[columnMap[key] || key] = val;
         });
         return newRow;
       },
@@ -332,6 +388,7 @@ export default function TableDeclaraciones() {
         (row.observaciones && row.observaciones.toLowerCase().includes(q)) ||
         (row.createdByName && row.createdByName.toLowerCase().includes(q)) ||
         (row.updatedByName && row.updatedByName.toLowerCase().includes(q)) ||
+        ((row.qrActivo !== false ? 'activo' : 'inactivo').includes(q)) ||
         (row.importadoNacional && (
           (row.importadoNacional === 'I' && 'importacion'.includes(q)) ||
           (row.importadoNacional === 'N' && 'nacional'.includes(q))
@@ -358,6 +415,11 @@ export default function TableDeclaraciones() {
           localDateString === filterValue ||
           formatted.includes(filterValue)
         );
+      }
+
+      if (columnId === 'qrActivo') {
+        const estadoStr = row.qrActivo !== false ? 'activo' : 'inactivo';
+        return estadoStr.includes(filterValue);
       }
 
       return (row as any)[columnId]?.toString().toLowerCase().includes(filterValue);
@@ -620,6 +682,77 @@ export default function TableDeclaraciones() {
           </Tooltip>
         </Box>
 
+        {/* Barra de Acciones Masivas cuando hay selección */}
+        {selectedIds.length > 0 && (
+          <Box
+            sx={{
+              width: '100%',
+              p: 1.25,
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              border: '1.5px solid #bae6fd',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1.25,
+              boxShadow: '0 2px 8px rgba(2, 132, 199, 0.08)',
+            }}>
+            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+              <Chip
+                label={`${selectedIds.length} seleccionada${selectedIds.length === 1 ? '' : 's'}`}
+                color="primary"
+                size="small"
+                onDelete={() => setSelectedIds([])}
+                sx={{ fontWeight: 700, backgroundColor: '#0284c7' }}
+              />
+              <Typography variant="body2" color="#475569" fontWeight="600" sx={{ fontSize: '0.84rem' }}>
+                Acciones en lote para entrega / transporte:
+              </Typography>
+            </Box>
+
+            <Box display="flex" gap={1} flexWrap="wrap">
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                startIcon={<LockIcon />}
+                onClick={() => handleToggleQrStatus(selectedIds, false)}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  backgroundColor: '#fef2f2',
+                  borderColor: '#fca5a5',
+                  color: '#dc2626',
+                  fontSize: '0.8rem',
+                  '&:hover': { backgroundColor: '#fee2e2', borderColor: '#f87171' },
+                }}>
+                🔒 Inactivar QRs ({selectedIds.length})
+              </Button>
+
+              <Button
+                variant="outlined"
+                color="success"
+                size="small"
+                startIcon={<LockOpenIcon />}
+                onClick={() => handleToggleQrStatus(selectedIds, true)}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  backgroundColor: '#f0fdf4',
+                  borderColor: '#86efac',
+                  color: '#16a34a',
+                  fontSize: '0.8rem',
+                  '&:hover': { backgroundColor: '#dcfce7', borderColor: '#4ade80' },
+                }}>
+                🔓 Reactivar QRs ({selectedIds.length})
+              </Button>
+            </Box>
+          </Box>
+        )}
+
         {/* Buscador global y Selector de vista para móviles */}
         <Box
           sx={{
@@ -777,18 +910,40 @@ export default function TableDeclaraciones() {
                             #{row.numeroDeclaracion || 'Sin número'}
                           </Typography>
                         </Box>
-                        <Chip
-                          label={isImport ? 'Importación' : 'Nacional'}
-                          size="small"
-                          sx={{
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            borderRadius: '6px',
-                            height: '22px',
-                            backgroundColor: isImport ? '#e0f2fe' : '#dcfce7',
-                            color: isImport ? '#0369a1' : '#15803d',
-                          }}
-                        />
+                        <Box display="flex" gap={0.5} alignItems="center">
+                          <Chip
+                            icon={
+                              row.qrActivo !== false ? (
+                                <CheckCircleOutlineIcon sx={{ fontSize: '12px !important' }} />
+                              ) : (
+                                <LockIcon sx={{ fontSize: '12px !important' }} />
+                              )
+                            }
+                            label={row.qrActivo !== false ? 'Activo' : 'Inactivo'}
+                            size="small"
+                            sx={{
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              height: '22px',
+                              backgroundColor: row.qrActivo !== false ? '#dcfce7' : '#fee2e2',
+                              color: row.qrActivo !== false ? '#15803d' : '#b91c1c',
+                              border: row.qrActivo !== false ? '1px solid #bbf7d0' : '1px solid #fecaca',
+                            }}
+                          />
+                          <Chip
+                            label={isImport ? 'Importación' : 'Nacional'}
+                            size="small"
+                            sx={{
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              height: '22px',
+                              backgroundColor: isImport ? '#e0f2fe' : '#dcfce7',
+                              color: isImport ? '#0369a1' : '#15803d',
+                            }}
+                          />
+                        </Box>
                       </Box>
 
                       {/* Cuerpo de datos */}
@@ -860,7 +1015,7 @@ export default function TableDeclaraciones() {
                       <Divider sx={{ my: 1.25 }} />
 
                       {/* Botones de acción táctiles en fila */}
-                      <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={1}>
+                      <Box display="grid" gridTemplateColumns="repeat(5, 1fr)" gap={0.75}>
                         <Button
                           size="small"
                           onClick={() => navigate(`/home/detalle/${row._id}`)}
@@ -870,7 +1025,7 @@ export default function TableDeclaraciones() {
                             borderRadius: '8px',
                             py: 0.75,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.72rem',
                             fontWeight: 600,
                             display: 'flex',
                             flexDirection: 'column',
@@ -890,7 +1045,7 @@ export default function TableDeclaraciones() {
                             borderRadius: '8px',
                             py: 0.75,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.72rem',
                             fontWeight: 600,
                             display: 'flex',
                             flexDirection: 'column',
@@ -903,6 +1058,30 @@ export default function TableDeclaraciones() {
 
                         <Button
                           size="small"
+                          onClick={() => handleToggleQrStatus([row._id], row.qrActivo === false)}
+                          sx={{
+                            backgroundColor: row.qrActivo !== false ? '#fef2f2' : '#f0fdf4',
+                            color: row.qrActivo !== false ? '#dc2626' : '#16a34a',
+                            borderRadius: '8px',
+                            py: 0.75,
+                            textTransform: 'none',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                            border: row.qrActivo !== false ? '1px solid #fecaca' : '1px solid #bbf7d0',
+                          }}>
+                          {row.qrActivo !== false ? (
+                            <LockIcon sx={{ fontSize: 18 }} />
+                          ) : (
+                            <LockOpenIcon sx={{ fontSize: 18 }} />
+                          )}
+                          {row.qrActivo !== false ? 'Inactivar' : 'Activar'}
+                        </Button>
+
+                        <Button
+                          size="small"
                           onClick={() => handleOpenEditarModal(row)}
                           sx={{
                             backgroundColor: '#fefce8',
@@ -910,7 +1089,7 @@ export default function TableDeclaraciones() {
                             borderRadius: '8px',
                             py: 0.75,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.72rem',
                             fontWeight: 600,
                             display: 'flex',
                             flexDirection: 'column',
@@ -930,7 +1109,7 @@ export default function TableDeclaraciones() {
                             borderRadius: '8px',
                             py: 0.75,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.72rem',
                             fontWeight: 600,
                             display: 'flex',
                             flexDirection: 'column',
@@ -1268,6 +1447,34 @@ export default function TableDeclaraciones() {
                                     </IconButton>
                                   </Tooltip>
 
+                                  <Tooltip
+                                    title={
+                                      row.qrActivo !== false
+                                        ? 'Inactivar QR (Marcar entrega)'
+                                        : 'Reactivar QR'
+                                    }>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() =>
+                                        handleToggleQrStatus([row._id], row.qrActivo === false)
+                                      }
+                                      sx={{
+                                        color: row.qrActivo !== false ? '#dc2626' : '#16a34a',
+                                        backgroundColor:
+                                          row.qrActivo !== false ? '#fef2f2' : '#f0fdf4',
+                                        '&:hover': {
+                                          backgroundColor:
+                                            row.qrActivo !== false ? '#fee2e2' : '#dcfce7',
+                                        },
+                                      }}>
+                                      {row.qrActivo !== false ? (
+                                        <LockIcon fontSize="small" />
+                                      ) : (
+                                        <LockOpenIcon fontSize="small" />
+                                      )}
+                                    </IconButton>
+                                  </Tooltip>
+
                                   <Tooltip title="Editar declaración">
                                     <IconButton
                                       size="small"
@@ -1299,6 +1506,34 @@ export default function TableDeclaraciones() {
                           }
 
                           const value = (row as any)[column.id];
+
+                          if (column.id === 'qrActivo') {
+                            const isActivo = row.qrActivo !== false;
+                            return (
+                              <TableCell key={column.id} align="center">
+                                <Chip
+                                  icon={
+                                    isActivo ? (
+                                      <CheckCircleOutlineIcon sx={{ fontSize: '13px !important' }} />
+                                    ) : (
+                                      <LockIcon sx={{ fontSize: '13px !important' }} />
+                                    )
+                                  }
+                                  label={isActivo ? 'Activo' : 'Inactivo'}
+                                  size="small"
+                                  sx={{
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px',
+                                    height: '22px',
+                                    backgroundColor: isActivo ? '#dcfce7' : '#fee2e2',
+                                    color: isActivo ? '#15803d' : '#b91c1c',
+                                    border: isActivo ? '1px solid #bbf7d0' : '1px solid #fecaca',
+                                  }}
+                                />
+                              </TableCell>
+                            );
+                          }
 
                           if (column.id === 'importadoNacional') {
                             const isImport = value === 'I' || value?.toString().toLowerCase().includes('imp');

@@ -13,6 +13,17 @@ const findOneDeclaracion = async (
         .status(404)
         .json({ message: 'Declaración no encontrada' });
     }
+
+    // Si el QR está inactivo, no exponemos los documentos confidenciales en la consulta pública
+    if (res.qrActivo === false) {
+      const data = res.toObject ? res.toObject() : { ...res };
+      delete data.pdfDeclaracion;
+      delete data.pdfFactura;
+      delete data.archivoDeclaracion;
+      delete data.archivoFactura;
+      return response.status(200).json(data);
+    }
+
     return response.status(200).json(res);
   } catch (error) {
     console.log(error);
