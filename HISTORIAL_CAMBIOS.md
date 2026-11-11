@@ -21,6 +21,19 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-11] - Reemplazo de Alertas Nativas por Diálogos Modernos y Notificaciones Toast
+- **Tipo:** Mejora de UX / UI
+- **Motivo / Necesidad:** Reemplazar las alertas nativas del navegador (`window.confirm` y `window.alert`), que se veían anticuadas y toscas, por modales de confirmación con diseño moderno y mensajes flotantes (Toast) integrados al sistema de diseño Material-UI.
+- **Archivos Modificados:**
+  - `web/src/tables/TableDeclaraciones.tsx`
+- **Detalle de la Solución:**
+  1. Se implementó un modal de confirmación con `<Dialog>` estilizado (bordes redondeados `20px`, ícono de advertencia/acción circular con contraste de color, tipografía cuidada y botones de acción primario/peligro).
+  2. Se reemplazó el `window.confirm` de inactivación y reactivación de QR (individual y múltiple) y de eliminación de declaraciones.
+  3. Se implementó `<Snackbar>` con `<Alert variant="filled">` para mostrar notificaciones toast de éxito, advertencia o error en lugar de `alert()` nativo.
+- **Impacto y Prevención:** Mejora notable en la estética visual y experiencia del usuario; no altera la lógica de negocio ni la comunicación con la API.
+
+---
+
 ### [2026-11-11] - Inactivación y Reactivación de Códigos QR (Entrega / Fin de Transporte)
 - **Tipo:** Feature / Seguridad y Trazabilidad Operativa
 - **Motivo / Necesidad:** El cliente requería poder inactivar los códigos QR cuando la mercancía ya fue transportada o entregada, para que al escanear el QR físico no siga disponible públicamente, con opción de inactivar en bloque o de forma individual, y poder reactivarlo si es necesario.

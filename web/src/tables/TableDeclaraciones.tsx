@@ -24,6 +24,12 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 
 //  Icons
@@ -33,6 +39,7 @@ import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ImageIcon from '@mui/icons-material/Image';
 import GridOnIcon from '@mui/icons-material/GridOn';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DownloadIcon from '@mui/icons-material/Download';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -113,6 +120,42 @@ export default function TableDeclaraciones() {
   const [qrModalDeclaraciones, setQrModalDeclaraciones] = useState<Declaracion[]>([]);
   const [qrModalSingle, setQrModalSingle] = useState<Declaracion | null>(null);
 
+  // Estados para diálogos modernos y notificaciones Toast
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmText: string;
+    confirmColor?: 'primary' | 'error' | 'success' | 'warning' | 'info';
+    icon?: React.ReactNode;
+    onConfirm: () => Promise<void> | void;
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmText: 'Confirmar',
+    confirmColor: 'primary',
+    icon: null,
+    onConfirm: () => {},
+  });
+
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info' | 'warning';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const showNotification = (
+    message: string,
+    severity: 'success' | 'error' | 'info' | 'warning' = 'success',
+  ) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const formatDate = (isoDate: string) => {
     if (!isoDate) return '-';
     try {
@@ -180,78 +223,120 @@ export default function TableDeclaraciones() {
 
   const hasActiveFilters = Object.values(filters).some(val => Boolean(val && val.trim() !== ''));
 
-  const handleDelete = async (registro: Declaracion) => {
-    if (
-      !window.confirm(
-        `¿Estás seguro de que deseas eliminar la declaración ${registro.numeroDeclaracion}?`,
-      )
-    ) {
-      return;
-    }
+  const handleDelete = (registro: Declaracion) => {
+    setConfirmDialog({
+      open: true,
+      title: '¿Eliminar declaración?',
+      description: `¿Estás seguro de que deseas eliminar la declaración "${registro.numeroDeclaracion}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      confirmColor: 'error',
+      icon: <DeleteIcon sx={{ fontSize: 26, color: '#dc2626' }} />,
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${API_URL}/${registro._id}`, {
+            method: 'DELETE',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          });
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/${registro._id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+          if (!response.ok) {
+            throw new Error('Error al eliminar la declaración');
+          }
 
-      if (!response.ok) {
-        throw new Error('Error al eliminar la declaración');
-      }
-
-      setRows(prevRows => prevRows.filter(row => row._id !== registro._id));
-    } catch (error) {
-      console.error('Error al eliminar el registro:', error);
-    }
+          setRows(prevRows => prevRows.filter(row => row._id !== registro._id));
+          showNotification('Declaración eliminada exitosamente', 'success');
+        } catch (error) {
+          console.error('Error al eliminar el registro:', error);
+          showNotification('Hubo un error al eliminar el registro', 'error');
+        }
+      },
+    });
   };
 
-  const handleToggleQrStatus = async (idsToToggle: string[], nuevoEstado: boolean) => {
+  const handleToggleQrStatus = (idsToToggle: string[], nuevoEstado: boolean) => {
     if (!idsToToggle || idsToToggle.length === 0) return;
 
-    const actionText = nuevoEstado ? 'reactivar' : 'inactivar';
-    const confirmMessage =
-      idsToToggle.length === 1
-        ? `¿Estás seguro de que deseas ${actionText} este código QR?`
-        : `¿Estás seguro de que deseas ${actionText} los ${idsToToggle.length} códigos QR seleccionados?`;
+    const count = idsToToggle.length;
+    const isSingle = count === 1;
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    const title = nuevoEstado
+      ? isSingle
+        ? '¿Reactivar código QR?'
+        : `¿Reactivar ${count} códigos QR?`
+      : isSingle
+      ? '¿Inactivar código QR?'
+      : `¿Inactivar ${count} códigos QR?`;
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/toggle-qr`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ ids: idsToToggle, qrActivo: nuevoEstado }),
-      });
+    const description = nuevoEstado
+      ? isSingle
+        ? 'El código QR volverá a estar disponible para consulta pública al ser escaneado.'
+        : `Los ${count} códigos QR seleccionados volverán a estar disponibles para consulta pública.`
+      : isSingle
+      ? 'Al inactivar este código QR, cualquier persona que lo escanee verá el aviso de código finalizado y no podrá consultar los detalles de la mercancía.'
+      : `Al inactivar estos ${count} códigos QR, la consulta pública por escaneo físico quedará bloqueada para todos ellos.`;
 
-      if (!response.ok) {
-        throw new Error('Error al actualizar el estado del QR');
-      }
+    const confirmText = nuevoEstado ? 'Reactivar' : 'Inactivar';
+    const confirmColor = nuevoEstado ? 'success' : 'error';
+    const icon = nuevoEstado ? (
+      <LockOpenIcon sx={{ fontSize: 28, color: '#16a34a' }} />
+    ) : (
+      <LockIcon sx={{ fontSize: 28, color: '#dc2626' }} />
+    );
 
-      setRows(prevRows =>
-        prevRows.map(row =>
-          idsToToggle.includes(row._id)
-            ? {
-                ...row,
-                qrActivo: nuevoEstado,
-                fechaInactivacion: nuevoEstado ? undefined : new Date().toISOString(),
-              }
-            : row,
-        ),
-      );
+    setConfirmDialog({
+      open: true,
+      title,
+      description,
+      confirmText,
+      confirmColor,
+      icon,
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(`${API_URL}/toggle-qr`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ ids: idsToToggle, qrActivo: nuevoEstado }),
+          });
 
-      // Remover de seleccionados
-      setSelectedIds(prev => prev.filter(id => !idsToToggle.includes(id)));
-    } catch (error) {
-      console.error('Error al cambiar el estado del QR:', error);
-      alert('Hubo un error al cambiar el estado del código QR.');
-    }
+          if (!response.ok) {
+            throw new Error('Error al actualizar el estado del QR');
+          }
+
+          setRows(prevRows =>
+            prevRows.map(row =>
+              idsToToggle.includes(row._id)
+                ? {
+                    ...row,
+                    qrActivo: nuevoEstado,
+                    fechaInactivacion: nuevoEstado ? undefined : new Date().toISOString(),
+                  }
+                : row,
+            ),
+          );
+
+          // Remover de seleccionados
+          setSelectedIds(prev => prev.filter(id => !idsToToggle.includes(id)));
+
+          showNotification(
+            nuevoEstado
+              ? isSingle
+                ? 'Código QR reactivado exitosamente'
+                : `${count} códigos QR reactivados exitosamente`
+              : isSingle
+              ? 'Código QR inactivado exitosamente'
+              : `${count} códigos QR inactivados exitosamente`,
+            'success',
+          );
+        } catch (error) {
+          console.error('Error al cambiar el estado del QR:', error);
+          showNotification('Hubo un error al cambiar el estado del código QR', 'error');
+        }
+      },
+    });
   };
 
   const handleSaveRegistroEditado = async () => {
@@ -333,7 +418,7 @@ export default function TableDeclaraciones() {
 
   const exportToExcel = (data: Declaracion[], fileName: string) => {
     if (!data || data.length === 0) {
-      alert('No hay datos para exportar');
+      showNotification('No hay datos para exportar', 'warning');
       return;
     }
 
@@ -1677,6 +1762,106 @@ export default function TableDeclaraciones() {
         declaraciones={qrModalDeclaraciones}
         registroUnico={qrModalSingle}
       />
+
+      {/* Diálogo Moderno de Confirmación */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            padding: '16px 20px',
+            maxWidth: '440px',
+            width: '100%',
+            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.2)',
+          },
+        }}
+      >
+        <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', gap: 1.5, p: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              backgroundColor:
+                confirmDialog.confirmColor === 'error'
+                  ? '#fee2e2'
+                  : confirmDialog.confirmColor === 'success'
+                  ? '#dcfce7'
+                  : '#e0f2fe',
+            }}
+          >
+            {confirmDialog.icon}
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#0f172a', fontSize: '1.15rem' }}>
+            {confirmDialog.title}
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ px: 1, py: 1.5 }}>
+          <Typography sx={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6 }}>
+            {confirmDialog.description}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 1, pt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+          <Button
+            onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600,
+              color: '#64748b',
+              borderRadius: '10px',
+              px: 2.5,
+              '&:hover': { backgroundColor: '#f1f5f9' },
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color={confirmDialog.confirmColor || 'primary'}
+            onClick={async () => {
+              const run = confirmDialog.onConfirm;
+              setConfirmDialog(prev => ({ ...prev, open: false }));
+              await run();
+            }}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 700,
+              borderRadius: '10px',
+              px: 3,
+              boxShadow: 'none',
+              '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.15)' },
+            }}
+          >
+            {confirmDialog.confirmText}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar / Toast de Notificaciones */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            width: '100%',
+            borderRadius: '12px',
+            fontWeight: 600,
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.2)',
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }

@@ -45,3 +45,4 @@ const toggleQrDeclaracion = async (
 };
 
 export default toggleQrDeclaracion;
+
