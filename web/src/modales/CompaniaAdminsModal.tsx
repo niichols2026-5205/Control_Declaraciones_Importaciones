@@ -37,6 +37,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface SystemAdminItem {
   companyId: string;
@@ -67,6 +68,15 @@ const CompaniaAdminsModal: React.FC<Props> = ({ open, onClose }) => {
   const [newPassword, setNewPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [creating, setCreating] = useState<boolean>(false);
+
+  // Estados para editar credenciales de administrador
+  const [editAdminDialogOpen, setEditAdminDialogOpen] = useState<boolean>(false);
+  const [selectedCompanyForEdit, setSelectedCompanyForEdit] =
+    useState<SystemAdminItem | null>(null);
+  const [editAdminUsername, setEditAdminUsername] = useState<string>('');
+  const [editAdminPassword, setEditAdminPassword] = useState<string>('');
+  const [showEditAdminPassword, setShowEditAdminPassword] = useState<boolean>(false);
+  const [updatingAdmin, setUpdatingAdmin] = useState<boolean>(false);
 
   // Estados para confirmación y notificaciones
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -183,6 +193,61 @@ const CompaniaAdminsModal: React.FC<Props> = ({ open, onClose }) => {
       showNotification(err.message || 'Error al crear la compañía', 'error');
     } finally {
       setCreating(false);
+    }
+  };
+
+  // Abrir modal de edición de administrador
+  const handleOpenEditAdmin = (item: SystemAdminItem) => {
+    setSelectedCompanyForEdit(item);
+    setEditAdminUsername(item.adminUsername);
+    setEditAdminPassword('');
+    setShowEditAdminPassword(false);
+    setEditAdminDialogOpen(true);
+  };
+
+  // Guardar cambios en las credenciales del administrador
+  const handleEditAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCompanyForEdit) return;
+
+    if (!editAdminUsername.trim()) {
+      showNotification('El nombre de usuario administrador es obligatorio', 'warning');
+      return;
+    }
+
+    try {
+      setUpdatingAdmin(true);
+      const token = localStorage.getItem('token');
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/companies/${selectedCompanyForEdit.companyId}/admin`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            username: editAdminUsername.trim(),
+            password: editAdminPassword.trim() || undefined,
+          }),
+        },
+      );
+
+      const resJson = await res.json();
+      if (!res.ok) {
+        throw new Error(resJson.error || 'Error al actualizar credenciales');
+      }
+
+      showNotification(
+        `Credenciales actualizadas exitosamente para la compañía "${selectedCompanyForEdit.companyName}"`,
+        'success',
+      );
+      setEditAdminDialogOpen(false);
+      await fetchSystemAdmins();
+    } catch (err: any) {
+      showNotification(err.message || 'Error al actualizar credenciales', 'error');
+    } finally {
+      setUpdatingAdmin(false);
     }
   };
 
@@ -580,37 +645,57 @@ const CompaniaAdminsModal: React.FC<Props> = ({ open, onClose }) => {
                               : '-'}
                           </TableCell>
 
-                          {/* Acciones: Editar Estado (Activar / Inactivar) */}
+                          {/* Acciones: Editar Administrador y Estado */}
                           <TableCell align="center">
-                            <Tooltip
-                              title={
-                                !item.companyActivo
-                                  ? 'Activar compañía (habilitar acceso a sus usuarios)'
-                                  : isCurrentCompany
-                                  ? 'No puedes inactivar la compañía en la que estás conectado'
-                                  : 'Inactivar compañía (bloquear acceso a sus usuarios)'
-                              }>
-                              <span>
+                            <Box display="flex" justifyContent="center" alignItems="center" gap={0.8}>
+                              {/* Botón Editar Administrador */}
+                              <Tooltip title="Cambiar usuario o contraseña del administrador">
                                 <IconButton
                                   size="small"
-                                  disabled={item.companyActivo && isCurrentCompany}
-                                  onClick={() => handleToggleCompanyStatus(item)}
+                                  onClick={() => handleOpenEditAdmin(item)}
                                   sx={{
-                                    color: item.companyActivo ? '#dc2626' : '#16a34a',
-                                    backgroundColor: item.companyActivo ? '#fef2f2' : '#f0fdf4',
+                                    color: '#d97706',
+                                    backgroundColor: '#fffbeb',
                                     '&:hover': {
-                                      backgroundColor: item.companyActivo ? '#fee2e2' : '#dcfce7',
+                                      backgroundColor: '#fef3c7',
                                     },
                                     borderRadius: '8px',
                                   }}>
-                                  {item.companyActivo ? (
-                                    <BlockIcon fontSize="small" />
-                                  ) : (
-                                    <CheckCircleOutlineIcon fontSize="small" />
-                                  )}
+                                  <EditIcon fontSize="small" />
                                 </IconButton>
-                              </span>
-                            </Tooltip>
+                              </Tooltip>
+
+                              {/* Botón Activar / Inactivar Compañía */}
+                              <Tooltip
+                                title={
+                                  !item.companyActivo
+                                    ? 'Activar compañía (habilitar acceso a sus usuarios)'
+                                    : isCurrentCompany
+                                    ? 'No puedes inactivar la compañía en la que estás conectado'
+                                    : 'Inactivar compañía (bloquear acceso a sus usuarios)'
+                                }>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    disabled={item.companyActivo && isCurrentCompany}
+                                    onClick={() => handleToggleCompanyStatus(item)}
+                                    sx={{
+                                      color: item.companyActivo ? '#dc2626' : '#16a34a',
+                                      backgroundColor: item.companyActivo ? '#fef2f2' : '#f0fdf4',
+                                      '&:hover': {
+                                        backgroundColor: item.companyActivo ? '#fee2e2' : '#dcfce7',
+                                      },
+                                      borderRadius: '8px',
+                                    }}>
+                                    {item.companyActivo ? (
+                                      <BlockIcon fontSize="small" />
+                                    ) : (
+                                      <CheckCircleOutlineIcon fontSize="small" />
+                                    )}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       );
@@ -764,6 +849,131 @@ const CompaniaAdminsModal: React.FC<Props> = ({ open, onClose }) => {
                 background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
               }}>
               {creating ? 'Creando Compañía...' : 'Crear Compañía'}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
+
+      {/* SUB-MODAL: EDITAR ADMINISTRADOR DE COMPAÑÍA */}
+      <Dialog
+        open={editAdminDialogOpen}
+        onClose={() => !updatingAdmin && setEditAdminDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '18px',
+            overflow: 'hidden',
+          },
+        }}>
+        <DialogTitle
+          sx={{
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            color: '#ffffff',
+            px: 3,
+            py: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}>
+          <EditIcon sx={{ color: '#fbbf24' }} />
+          <Typography variant="h6" fontWeight={700}>
+            Editar Administrador de la Compañía
+          </Typography>
+        </DialogTitle>
+
+        <form onSubmit={handleEditAdminSubmit}>
+          <DialogContent sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: '12px',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+              }}>
+              <Typography variant="caption" color="#64748b" fontWeight={600}>
+                EMPRESA SELECCIONADA
+              </Typography>
+              <Typography variant="subtitle1" fontWeight={700} color="#0f172a">
+                🏢 {selectedCompanyForEdit?.companyName}
+              </Typography>
+            </Box>
+
+            <Typography variant="body2" color="#475569">
+              Modifica el nombre de usuario y/o asigna una nueva contraseña para la cuenta administradora principal de esta compañía.
+            </Typography>
+
+            <TextField
+              label="Nombre de Usuario Administrador"
+              placeholder="ej. ATCadmin"
+              value={editAdminUsername}
+              onChange={e => setEditAdminUsername(e.target.value)}
+              fullWidth
+              required
+              disabled={updatingAdmin}
+              helperText="Identificador con el que este administrador iniciará sesión."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AdminPanelSettingsIcon sx={{ color: '#94a3b8' }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <TextField
+              label="Nueva Contraseña"
+              type={showEditAdminPassword ? 'text' : 'password'}
+              placeholder="Dejar en blanco para mantener la contraseña actual"
+              value={editAdminPassword}
+              onChange={e => setEditAdminPassword(e.target.value)}
+              fullWidth
+              disabled={updatingAdmin}
+              helperText="Escribe aquí solo si deseas cambiar la contraseña del administrador."
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowEditAdminPassword(!showEditAdminPassword)}
+                      edge="end"
+                      size="small">
+                      {showEditAdminPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #f1f5f9', gap: 1 }}>
+            <Button
+              onClick={() => setEditAdminDialogOpen(false)}
+              disabled={updatingAdmin}
+              sx={{ textTransform: 'none', fontWeight: 600, color: '#64748b' }}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={updatingAdmin}
+              startIcon={
+                updatingAdmin ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : (
+                  <EditIcon />
+                )
+              }
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: '10px',
+                px: 3,
+                background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #b45309 0%, #92400e 100%)',
+                },
+              }}>
+              {updatingAdmin ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </DialogActions>
         </form>

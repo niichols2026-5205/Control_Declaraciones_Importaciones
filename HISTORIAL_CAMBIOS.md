@@ -21,6 +21,20 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-13] - Actualización de Contraseña de ATCadmin y Edición de Administradores desde Distribuidores
+- **Tipo:** Seguridad / Feature / Gestión Multi-Tenant
+- **Motivo / Necesidad:**
+  1. El cliente solicitó reforzar la contraseña de `ATCadmin` por una más segura: `ATC2026qr`.
+  2. Habilitar desde la compañía `Distribuidores` (en el modal de Compañías y Administradores) la opción para cambiar en cualquier momento el nombre de usuario y/o la contraseña del administrador de cualquier compañía.
+- **Archivos Modificados:**
+  - `api/src/services/auth.services.ts` (Actualización de clave inicial de `ATCadmin` a `ATC2026qr`, y nuevo servicio `updateCompanyAdminCredentials`)
+  - `api/src/routes/auth.routes.ts` (Nueva ruta `PATCH /auth/companies/:id/admin` protegida con token y rol admin)
+  - `web/src/modales/CompaniaAdminsModal.tsx` (Botón de edición de credenciales por fila, modal interactivo para cambiar usuario y contraseña con visor de contraseña y feedback con toast)
+  - `DOCUMENTACION_SISTEMA.md` (Actualización de la tabla de endpoints de la API)
+- **Impacto y Prevención:** `ATCadmin` ahora utiliza la clave segura `ATC2026qr`. La compañía `Distribuidores` puede gestionar las credenciales de los administradores de todas las empresas. Se valida la unicidad de los nombres de usuario para evitar colisiones.
+
+---
+
 ### [2026-11-13] - Creación de Nuevas Compañías y Gestión de Estados (Activo/Inactivo)
 - **Tipo:** Feature / Multi-Tenant / Gestión de Cuentas
 - **Motivo / Necesidad:** El cliente requería poder dar de alta nuevas compañías directamente desde la interfaz, asignándoles su respectivo usuario administrador inicial y contraseña, así como poder activar o inactivar las compañías ya existentes en el sistema.

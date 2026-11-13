@@ -173,6 +173,7 @@ web/
 | `GET` | `/auth/system-administrators` | Token (Admin) | Lista consolidada de compañías y sus administradores |
 | `POST` | `/auth/companies` | Token (Admin) | Crea nueva compañía con su usuario administrador inicial |
 | `PATCH` | `/auth/companies/:id/status` | Token (Admin) | Alterna estado Activo/Inactivo de una compañía |
+| `PATCH` | `/auth/companies/:id/admin` | Token (Admin) | Actualiza usuario y/o contraseña del administrador de una compañía |
 | `GET` | `/declaraciones` | Token | Lista declaraciones pertenecientes a la compañía del usuario |
 | `POST` | `/declaraciones` | Token | Crea una declaración asociando `company`, `createdBy` y hora local |
 | `POST` | `/declaraciones/bulk` | Token | Creación masiva vía importación de Excel |

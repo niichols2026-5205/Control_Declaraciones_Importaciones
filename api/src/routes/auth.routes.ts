@@ -10,6 +10,7 @@ import {
   getSystemAdministrators,
   createCompanyWithAdmin,
   toggleCompanyStatus,
+  updateCompanyAdminCredentials,
 } from '../services/auth.services';
 import { verifyToken, isAdmin } from '../middlewares/authMiddleware';
 
@@ -136,6 +137,18 @@ router.patch('/companies/:id/status', verifyToken, isAdmin, async (req, res) => 
     const { id } = req.params;
     const requestingCompanyId = (req as any).user?.companyId;
     const result = await toggleCompanyStatus(id, requestingCompanyId);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Actualizar credenciales (usuario y/o contraseña) del administrador de una compañía
+router.patch('/companies/:id/admin', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, password } = req.body;
+    const result = await updateCompanyAdminCredentials(id, { username, password });
     res.status(200).json(result);
   } catch (error: any) {
     res.status(400).json({ error: error.message });

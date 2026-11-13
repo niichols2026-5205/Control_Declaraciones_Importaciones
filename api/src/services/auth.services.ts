@@ -142,7 +142,7 @@ export const ensureDefaultRoles = async () => {
       }
     }
 
-    // 5. Compañía "AMERICA TRADING COMPANY SAS" y usuario "ATCadmin" / "admin123"
+    // 5. Compañía "AMERICA TRADING COMPANY SAS" y usuario "ATCadmin" / "ATC2026qr"
     let atcCompany = await Company.findOne({
       $or: [
         { name: 'AMERICA TRADING COMPANY SAS' },
@@ -160,7 +160,7 @@ export const ensureDefaultRoles = async () => {
     if (!atcUser) {
       atcUser = new User({
         username: 'ATCadmin',
-        password: 'admin123',
+        password: 'ATC2026qr',
         roles: adminRole ? [adminRole._id] : [],
         company: atcCompany._id,
         activo: true,
@@ -169,10 +169,11 @@ export const ensureDefaultRoles = async () => {
       console.log('✅ Usuario administrador creado: ATCadmin (Compañía: AMERICA TRADING COMPANY SAS)');
     } else {
       let modifiedAtc = false;
-      const passMatchesAtc = await atcUser.comparePassword('admin123');
-      if (!passMatchesAtc) {
-        atcUser.password = 'admin123';
+      const passMatchesOld = await atcUser.comparePassword('admin123');
+      if (passMatchesOld) {
+        atcUser.password = 'ATC2026qr';
         modifiedAtc = true;
+        console.log('🔐 Contraseña de ATCadmin actualizada a la versión segura: ATC2026qr');
       }
       if (!atcUser.company || String(atcUser.company) !== String(atcCompany._id)) {
         atcUser.company = atcCompany._id as any;
@@ -532,6 +533,7 @@ export const getSystemAdministrators = async () => {
       companyId: company._id,
       companyName: company.name,
       companyActivo: company.activo !== false,
+      adminUserId: adminUser ? adminUser._id : null,
       adminUsername: adminUser ? adminUser.username : 'Sin Administrador',
       adminRoles: adminUser
         ? (adminUser.roles as any[]).map(r => r?.name || 'admin')
@@ -645,5 +647,81 @@ export const toggleCompanyStatus = async (
       name: company.name,
       activo: company.activo,
     },
+  };
+};
+
+/**
+ * Actualizar credenciales (usuario y/o contraseña) del administrador de una compañía
+ */
+export const updateCompanyAdminCredentials = async (
+  companyId: string,
+  data: {
+    username?: string;
+    password?: string;
+  },
+) => {
+  const company = await Company.findById(companyId);
+  if (!company) {
+    throw new Error('Compañía no encontrada');
+  }
+
+  // Buscar todos los usuarios pertenecientes a la compañía
+  const companyUsers = await User.find({ company: company._id })
+    .populate('roles')
+    .sort({ createdAt: 1 });
+
+  if (!companyUsers || companyUsers.length === 0) {
+    throw new Error('No se encontró ningún usuario registrado en esta compañía.');
+  }
+
+  // Localizar al administrador principal
+  const adminUser =
+    companyUsers.find(u => ROOT_ADMIN_USERNAMES.includes(u.username.toLowerCase())) ||
+    companyUsers.find(u =>
+      (u.roles as any[]).some(r => r?.name?.toLowerCase() === 'admin'),
+    ) ||
+    companyUsers[0];
+
+  if (!adminUser) {
+    throw new Error('No se encontró el administrador de la compañía.');
+  }
+
+  const oldUsername = adminUser.username;
+
+  // Si se actualiza el nombre de usuario
+  if (data.username && data.username.trim() !== '' && data.username.trim() !== adminUser.username) {
+    const cleanUsername = data.username.trim();
+
+    // Validar que no esté en uso por otra cuenta
+    const existing = await User.findOne({
+      _id: { $ne: adminUser._id },
+      username: { $regex: new RegExp(`^${cleanUsername}$`, 'i') },
+    });
+    if (existing) {
+      throw new Error(`El nombre de usuario '${cleanUsername}' ya está en uso.`);
+    }
+
+    // Actualizar lista de administradores protegidos si aplicaba
+    const oldIdx = ROOT_ADMIN_USERNAMES.indexOf(oldUsername.toLowerCase());
+    if (oldIdx !== -1) {
+      ROOT_ADMIN_USERNAMES.splice(oldIdx, 1);
+    }
+    if (!ROOT_ADMIN_USERNAMES.includes(cleanUsername.toLowerCase())) {
+      ROOT_ADMIN_USERNAMES.push(cleanUsername.toLowerCase());
+    }
+
+    adminUser.username = cleanUsername;
+  }
+
+  // Si se envía una nueva contraseña
+  if (data.password && data.password.trim() !== '') {
+    adminUser.password = data.password.trim();
+  }
+
+  await adminUser.save();
+
+  return {
+    message: `Credenciales del administrador de '${company.name}' actualizadas exitosamente`,
+    adminUsername: adminUser.username,
   };
 };
