@@ -53,6 +53,7 @@ export interface UserItem {
   companyId?: string;
   companyName?: string;
   activo: boolean;
+  isRootAdmin?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -562,15 +563,31 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
                                   sx={{ lineHeight: 1.2 }}>
                                   {user.username}
                                 </Typography>
-                                {isMe && (
-                                  <Typography
-                                    variant="caption"
-                                    color="#0284c7"
-                                    fontWeight="600"
-                                    fontSize="0.7rem">
-                                    (Tú)
-                                  </Typography>
-                                )}
+                                <Box display="flex" gap={0.5} alignItems="center" mt={0.3}>
+                                  {isMe && (
+                                    <Typography
+                                      variant="caption"
+                                      color="#0284c7"
+                                      fontWeight="600"
+                                      fontSize="0.7rem">
+                                      (Tú)
+                                    </Typography>
+                                  )}
+                                  {user.isRootAdmin && (
+                                    <Chip
+                                      label="Admin Inicial (Protegido)"
+                                      size="small"
+                                      sx={{
+                                        height: 18,
+                                        fontSize: '0.63rem',
+                                        fontWeight: 700,
+                                        backgroundColor: '#fef3c7',
+                                        color: '#92400e',
+                                        border: '1px solid #fde68a',
+                                      }}
+                                    />
+                                  )}
+                                </Box>
                               </Box>
                             </Box>
                           </TableCell>
@@ -637,23 +654,35 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
                           <TableCell align="center">
                             <Box display="flex" justifyContent="center" gap={0.5}>
                               {/* Botón Editar */}
-                              <Tooltip title="Editar usuario (rol, datos o contraseña)">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleOpenEdit(user)}
-                                  sx={{
-                                    color: '#ca8a04',
-                                    backgroundColor: '#fefce8',
-                                    '&:hover': { backgroundColor: '#fef9c3' },
-                                  }}>
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
+                              <Tooltip
+                                title={
+                                  user.isRootAdmin
+                                    ? 'El usuario administrador inicial de la compañía no se puede editar (protegido por el sistema)'
+                                    : 'Editar usuario (rol, datos o contraseña)'
+                                }>
+                                <span>
+                                  <IconButton
+                                    size="small"
+                                    disabled={Boolean(user.isRootAdmin)}
+                                    onClick={() => handleOpenEdit(user)}
+                                    sx={{
+                                      color: user.isRootAdmin ? '#94a3b8' : '#ca8a04',
+                                      backgroundColor: user.isRootAdmin ? '#f1f5f9' : '#fefce8',
+                                      '&:hover': {
+                                        backgroundColor: user.isRootAdmin ? '#f1f5f9' : '#fef9c3',
+                                      },
+                                    }}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
                               </Tooltip>
 
                               {/* Botón Activar / Inactivar */}
                               <Tooltip
                                 title={
-                                  isMe
+                                  user.isRootAdmin
+                                    ? 'El usuario administrador inicial de la compañía no se puede inactivar'
+                                    : isMe
                                     ? 'No puedes inactivar tu propia cuenta'
                                     : user.activo
                                     ? 'Inactivar usuario'
@@ -662,13 +691,25 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
                                 <span>
                                   <IconButton
                                     size="small"
-                                    disabled={isMe && user.activo}
+                                    disabled={Boolean(user.isRootAdmin) || (isMe && user.activo)}
                                     onClick={() => handleToggleStatus(user)}
                                     sx={{
-                                      color: user.activo ? '#dc2626' : '#16a34a',
-                                      backgroundColor: user.activo ? '#fef2f2' : '#f0fdf4',
+                                      color: user.isRootAdmin
+                                        ? '#94a3b8'
+                                        : user.activo
+                                        ? '#dc2626'
+                                        : '#16a34a',
+                                      backgroundColor: user.isRootAdmin
+                                        ? '#f1f5f9'
+                                        : user.activo
+                                        ? '#fef2f2'
+                                        : '#f0fdf4',
                                       '&:hover': {
-                                        backgroundColor: user.activo ? '#fee2e2' : '#dcfce7',
+                                        backgroundColor: user.isRootAdmin
+                                          ? '#f1f5f9'
+                                          : user.activo
+                                          ? '#fee2e2'
+                                          : '#dcfce7',
                                       },
                                     }}>
                                     {user.activo ? (
@@ -699,8 +740,8 @@ const GestionUsuariosModal: React.FC<Props> = ({ open, onClose }) => {
             borderTop: '1px solid #f1f5f9',
             justifyContent: 'space-between',
           }}>
-          <Typography variant="caption" color="#94a3b8">
-            * Los usuarios inactivos no pueden ingresar al sistema.
+          <Typography variant="caption" color="#64748b" sx={{ fontSize: '0.78rem' }}>
+            ℹ️ <strong>Protección de Administradores:</strong> El usuario inicial de la compañía no se puede editar. Los usuarios creados a partir del segundo sí se pueden editar o gestionar libremente.
           </Typography>
           <Button
             onClick={onClose}

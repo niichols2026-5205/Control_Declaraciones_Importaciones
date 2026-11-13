@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import './Heder.css';
 import { FiLogOut } from 'react-icons/fi';
-import { HiUserGroup } from 'react-icons/hi2';
+import { HiUserGroup, HiBuildingOffice2 } from 'react-icons/hi2';
 import { useState } from 'react';
 import GestionUsuariosModal from '../newUser/GestionUsuariosModal';
+import CompaniaAdminsModal from '../modales/CompaniaAdminsModal';
 
 interface HeaderProps {
   username: string;
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ username }) => {
   const [showModal, setShowModal] = useState(false);
+  const [showCompaniaModal, setShowCompaniaModal] = useState(false);
   const navigate = useNavigate();
 
   const role = localStorage.getItem('roles') || '';
@@ -73,6 +75,25 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
 
         <div className="header-divider" />
 
+        {/* Botón para ver Compañías y Administradores (Especial para Distribuidores) */}
+        {role === 'admin' && companyName === 'Distribuidores' && (
+          <button
+            onClick={() => setShowCompaniaModal(true)}
+            className="action-btn"
+            style={{
+              backgroundColor: '#ecfdf5',
+              borderColor: '#a7f3d0',
+              color: '#065f46',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            title="Ver tabla de Compañías y Usuarios Administradores del Sistema">
+            <HiBuildingOffice2 className="btn-icon" style={{ color: '#059669' }} />
+            <span className="btn-text">Compañías y Admins</span>
+          </button>
+        )}
+
         {/* Botón para gestionar usuarios (Sólo si es admin) */}
         {role === 'admin' && (
           <button
@@ -95,6 +116,12 @@ const Header: React.FC<HeaderProps> = ({ username }) => {
       </div>
 
       {showModal && <GestionUsuariosModal open={showModal} onClose={() => setShowModal(false)} />}
+      {showCompaniaModal && (
+        <CompaniaAdminsModal
+          open={showCompaniaModal}
+          onClose={() => setShowCompaniaModal(false)}
+        />
+      )}
     </header>
   );
 };

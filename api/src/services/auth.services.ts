@@ -20,12 +20,38 @@ export const ensureDefaultRoles = async () => {
 
     const adminRole = await Role.findOne({ name: 'admin' });
 
-    // 2. Compañías por defecto: "Pruebas" y "SI R&R"
-    let pruebasCompany = await Company.findOne({ name: 'Pruebas' });
-    if (!pruebasCompany) {
-      pruebasCompany = await Company.create({ name: 'Pruebas', activo: true });
-      console.log('✅ Compañía creada: Pruebas');
+    // 2. Compañías por defecto: "Distribuidores" (anteriormente "Pruebas") y "SI R&R"
+    let distCompany = await Company.findOne({
+      $or: [
+        { name: 'Distribuidores' },
+        { name: 'Pruebas' },
+        { name: { $regex: /^distribuidores$/i } },
+      ],
+    });
+    if (!distCompany) {
+      distCompany = await Company.create({ name: 'Distribuidores', activo: true });
+      console.log('✅ Compañía creada: Distribuidores');
+    } else if (distCompany.name !== 'Distribuidores') {
+      distCompany.name = 'Distribuidores';
+      await distCompany.save();
+      console.log('✅ Compañía renombrada: Pruebas -> Distribuidores');
     }
+
+    // Actualizar declaraciones de la compañía con el nombre nuevo "Distribuidores"
+    await Declaraciones.updateMany(
+      {
+        $or: [
+          { company: distCompany._id },
+          { companyName: 'Pruebas' },
+        ],
+      },
+      {
+        $set: {
+          company: distCompany._id,
+          companyName: 'Distribuidores',
+        },
+      },
+    );
 
     let sirrCompany = await Company.findOne({ name: 'SI R&R' });
     if (!sirrCompany) {
@@ -33,7 +59,7 @@ export const ensureDefaultRoles = async () => {
       console.log('✅ Compañía creada: SI R&R');
     }
 
-    // 3. Usuario Administrador para "Pruebas" (usuario: PRUEBAS / clave: PRUEBAS)
+    // 3. Usuario Administrador para "Distribuidores" (usuario: PRUEBAS / clave: PRUEBAS)
     let pruebasUser = await User.findOne({
       $or: [
         { username: { $regex: /^pruebas$/i } },
@@ -45,11 +71,11 @@ export const ensureDefaultRoles = async () => {
         username: 'PRUEBAS',
         password: 'PRUEBAS',
         roles: adminRole ? [adminRole._id] : [],
-        company: pruebasCompany._id,
+        company: distCompany._id,
         activo: true,
       });
       await pruebasUser.save();
-      console.log('✅ Usuario administrador creado: PRUEBAS (Compañía: Pruebas)');
+      console.log('✅ Usuario administrador creado: PRUEBAS (Compañía: Distribuidores)');
     } else {
       let modifiedPruebas = false;
       const passMatchesPruebas = await pruebasUser.comparePassword('PRUEBAS');
@@ -57,8 +83,8 @@ export const ensureDefaultRoles = async () => {
         pruebasUser.password = 'PRUEBAS';
         modifiedPruebas = true;
       }
-      if (!pruebasUser.company || String(pruebasUser.company) !== String(pruebasCompany._id)) {
-        pruebasUser.company = pruebasCompany._id as any;
+      if (!pruebasUser.company || String(pruebasUser.company) !== String(distCompany._id)) {
+        pruebasUser.company = distCompany._id as any;
         modifiedPruebas = true;
       }
       if (pruebasUser.activo === false) {
@@ -67,7 +93,7 @@ export const ensureDefaultRoles = async () => {
       }
       if (modifiedPruebas) {
         await pruebasUser.save();
-        console.log('✅ Usuario administrador verificado/actualizado: PRUEBAS (Compañía: Pruebas)');
+        console.log('✅ Usuario administrador verificado/actualizado: PRUEBAS (Compañía: Distribuidores)');
       }
     }
 
@@ -292,8 +318,13 @@ export const loginUser = async (username: string, password: string) => {
   };
 };
 
+// Nombres de usuario raíz protegidos que crearon la compañía
+const ROOT_ADMIN_USERNAMES = ['admin', 'pruebas', 'atcadmin'];
+
 /**
  * Obtener usuarios (filtrados por compañía si aplica)
+ * El primer usuario administrador de la compañía se marca como isRootAdmin = true
+ * Los usuarios posteriores (a partir del segundo) tienen isRootAdmin = false y pueden ser editados.
  */
 export const getAllUsers = async (filterCompanyId?: string) => {
   await ensureDefaultRoles();
@@ -305,10 +336,23 @@ export const getAllUsers = async (filterCompanyId?: string) => {
   const users = await User.find(query, '-password')
     .populate('roles')
     .populate('company')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: 1 });
 
-  return users.map(user => {
+  const firstUserPerCompany = new Map<string, string>();
+
+  return users.map((user, idx) => {
     const comp = user.company as any;
+    const compKey = comp?._id ? String(comp._id) : 'sin_compania';
+    const isNamedRoot = ROOT_ADMIN_USERNAMES.includes(user.username.toLowerCase());
+
+    let isRootAdmin = isNamedRoot;
+    if (!firstUserPerCompany.has(compKey)) {
+      firstUserPerCompany.set(compKey, String(user._id));
+      isRootAdmin = true;
+    } else if (firstUserPerCompany.get(compKey) === String(user._id)) {
+      isRootAdmin = true;
+    }
+
     return {
       _id: user._id,
       username: user.username,
@@ -316,6 +360,8 @@ export const getAllUsers = async (filterCompanyId?: string) => {
       companyId: comp?._id,
       companyName: comp?.name || 'Sin Compañía',
       activo: user.activo !== false,
+      isRootAdmin,
+      orderIndex: idx,
       createdAt: (user as any).createdAt,
       updatedAt: (user as any).updatedAt,
     };
@@ -341,9 +387,22 @@ export const updateUser = async (
     throw new Error('Usuario no encontrado');
   }
 
-  // Si cambia el username, verificar que no esté duplicado
+  // Protección: el usuario que creó la compañía no se puede editar
+  if (ROOT_ADMIN_USERNAMES.includes(user.username.toLowerCase())) {
+    throw new Error(
+      'El usuario administrador principal de la compañía no se puede editar (protegido por el sistema).',
+    );
+  }
+
+  // Si cambia el username, verificar que no use un nombre protegido del sistema ni esté duplicado
   if (data.username && data.username.trim() !== user.username) {
     const cleanUsername = data.username.trim();
+    if (ROOT_ADMIN_USERNAMES.includes(cleanUsername.toLowerCase())) {
+      throw new Error(
+        `El nombre de usuario '${cleanUsername}' está reservado para cuentas principales del sistema.`,
+      );
+    }
+
     const existing = await User.findOne({
       _id: { $ne: id },
       username: { $regex: new RegExp(`^${cleanUsername}$`, 'i') },
@@ -414,6 +473,13 @@ export const toggleUserStatus = async (id: string, requestingUsername?: string) 
     throw new Error('Usuario no encontrado');
   }
 
+  // Protección: el usuario administrador que creó la compañía no se puede inactivar
+  if (ROOT_ADMIN_USERNAMES.includes(user.username.toLowerCase())) {
+    throw new Error(
+      'El usuario administrador principal de la compañía no puede ser inactivado.',
+    );
+  }
+
   const nuevoEstado = !user.activo;
 
   // Evitar auto-inactivación del admin en sesión
@@ -432,4 +498,42 @@ export const toggleUserStatus = async (id: string, requestingUsername?: string) 
     message: `Usuario ${user.username} ${nuevoEstado ? 'activado' : 'inactivado'} exitosamente`,
     activo: user.activo,
   };
+};
+
+/**
+ * Obtener listado consolidado de compañías y administradores del sistema (Sólo Lectura)
+ */
+export const getSystemAdministrators = async () => {
+  await ensureDefaultRoles();
+
+  const companies = await Company.find().sort({ name: 1 });
+  const users = await User.find({ activo: true })
+    .populate('roles')
+    .populate('company');
+
+  return companies.map(company => {
+    const companyUsers = users.filter(
+      u => u.company && String((u.company as any)._id) === String(company._id),
+    );
+
+    const adminUser =
+      companyUsers.find(u => ROOT_ADMIN_USERNAMES.includes(u.username.toLowerCase())) ||
+      companyUsers.find(u =>
+        (u.roles as any[]).some(r => r?.name?.toLowerCase() === 'admin'),
+      ) ||
+      companyUsers[0];
+
+    return {
+      companyId: company._id,
+      companyName: company.name,
+      companyActivo: company.activo,
+      adminUsername: adminUser ? adminUser.username : 'Sin Administrador',
+      adminRoles: adminUser
+        ? (adminUser.roles as any[]).map(r => r?.name || 'admin')
+        : ['admin'],
+      adminActivo: adminUser ? adminUser.activo !== false : false,
+      totalUsers: companyUsers.length,
+      createdAt: (company as any).createdAt,
+    };
+  });
 };

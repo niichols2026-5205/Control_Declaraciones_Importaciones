@@ -21,6 +21,24 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-13] - Protección de Administradores Iniciales, Renombre a "Distribuidores" y Directorio de Compañías
+- **Tipo:** Seguridad / UX / Multi-Tenant
+- **Motivo / Necesidad:**
+  1. Proteger al usuario administrador que da origen a la compañía para que no pueda ser editado ni inactivado, evitando que cambie su nombre o genere colisiones con otras empresas; permitiendo editar únicamente a los usuarios creados a partir del segundo.
+  2. Renombrar la compañía `Pruebas` a `Distribuidores` y migrar sus declaraciones asociadas.
+  3. Agregar un botón e interfaz en `Distribuidores` para consultar la tabla de **Compañías y Usuarios Administradores del Sistema** en modo 100% solo lectura (sin opciones de crear, editar, inactivar ni eliminar).
+- **Archivos Modificados:**
+  - `api/src/services/auth.services.ts` (Renombre de empresa `Distribuidores`, migración de declaraciones, bloqueo de edición e inactivación para administradores iniciales `isRootAdmin`, y servicio `getSystemAdministrators`)
+  - `api/src/routes/auth.routes.ts` (Nueva ruta `GET /auth/system-administrators` protegida con token y rol admin)
+  - `web/src/newUser/GestionUsuariosModal.tsx` (Insignia `Admin Inicial (Protegido)`, bloqueo de botones Editar e Inactivar para administradores principales, permitiendo gestión a partir del segundo usuario)
+  - `web/src/modales/CompaniaAdminsModal.tsx` (Nuevo componente modal de solo lectura con tabla consolidada de empresas, administradores, roles, estados y fechas)
+  - `web/src/header/Heder.tsx` (Botón "Compañías y Admins" en la barra superior para usuarios de la empresa `Distribuidores`)
+  - `web/src/tables/TableDeclaraciones.tsx` (Botón "Compañías y Admins" en la barra de herramientas de la tabla para `Distribuidores`)
+  - `AGENTS.md` y `DOCUMENTACION_SISTEMA.md` (Actualización de nombres y reglas del sistema)
+- **Impacto y Prevención:** El usuario administrador de cada compañía queda blindado tanto a nivel visual como en el backend. Los usuarios adicionales siguen gozando de edición completa. La vista de compañías y administradores es estrictamente de lectura. Se preserva el aislamiento multi-tenant en todas las rutas y vistas.
+
+---
+
 ### [2026-11-13] - Alta de Compañía "AMERICA TRADING COMPANY SAS" y Administrador "ATCadmin"
 - **Tipo:** Configuración / Multi-Tenant / Autenticación
 - **Motivo / Necesidad:** El cliente requería habilitar una nueva compañía en el sistema (`AMERICA TRADING COMPANY SAS`) con su respectivo usuario administrador inicial (`ATCadmin` / `admin123`), manteniendo el estricto aislamiento multi-tenant frente a las empresas existentes (`SI R&R` y `Pruebas`).

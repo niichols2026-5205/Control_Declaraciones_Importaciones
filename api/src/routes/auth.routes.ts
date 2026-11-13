@@ -7,6 +7,7 @@ import {
   toggleUserStatus,
   getRoles,
   getCompanies,
+  getSystemAdministrators,
 } from '../services/auth.services';
 import { verifyToken, isAdmin } from '../middlewares/authMiddleware';
 
@@ -97,6 +98,16 @@ router.get('/companies', verifyToken, async (req, res) => {
   try {
     const companies = await getCompanies();
     res.status(200).json(companies);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Listado consolidado de compañías y administradores del sistema (Sólo Lectura)
+router.get('/system-administrators', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const list = await getSystemAdministrators();
+    res.status(200).json(list);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

@@ -55,12 +55,14 @@ import TableRowsIcon from '@mui/icons-material/TableRows';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ApartmentIcon from '@mui/icons-material/Apartment';
 
 //  Modales
 import EditarRegistroModal from '../modales/EditarRegistroModal';
 import NuevoRegistroModal from '../modales/NuevoRegistroModal';
 import ImportarExcelModal from '../modales/ImportarExcelModal';
 import DescargarQRModal from '../modales/DescargarQRModal';
+import CompaniaAdminsModal from '../modales/CompaniaAdminsModal';
 
 // Importacion de la interfaz
 import { Declaracion } from '../types/types';
@@ -100,6 +102,7 @@ export default function TableDeclaraciones() {
   const [filters, setFilters] = useState<{ [key: string]: string }>({});
   const [editarModalOpen, setEditarModalOpen] = useState<boolean>(false);
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
+  const [companiaModalOpen, setCompaniaModalOpen] = useState<boolean>(false);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -742,6 +745,34 @@ export default function TableDeclaraciones() {
               Exportar Excel
             </Button>
           </Tooltip>
+
+          {/* Botón ver Directorio de Compañías y Administradores (Especial Distribuidores) */}
+          {localStorage.getItem('companyName') === 'Distribuidores' && (
+            <Tooltip title="Ver tabla de Compañías y Usuarios Administradores del Sistema">
+              <Button
+                variant="outlined"
+                onClick={() => setCompaniaModalOpen(true)}
+                startIcon={<ApartmentIcon />}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: '10px',
+                  borderColor: '#059669',
+                  color: '#047857',
+                  backgroundColor: '#ecfdf5',
+                  padding: { xs: '7px 10px', sm: '7px 16px' },
+                  fontSize: { xs: '0.78rem', sm: '0.875rem' },
+                  width: '100%',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    backgroundColor: '#d1fae5',
+                    borderColor: '#047857',
+                  },
+                }}>
+                Compañías y Admins
+              </Button>
+            </Tooltip>
+          )}
 
           <Tooltip title="Crear nueva declaración">
             <Button
@@ -1761,6 +1792,10 @@ export default function TableDeclaraciones() {
         onClose={() => setQrModalOpen(false)}
         declaraciones={qrModalDeclaraciones}
         registroUnico={qrModalSingle}
+      />
+      <CompaniaAdminsModal
+        open={companiaModalOpen}
+        onClose={() => setCompaniaModalOpen(false)}
       />
 
       {/* Diálogo Moderno de Confirmación */}

@@ -10,7 +10,7 @@
 ### Objetivos Clave:
 - **Centralización**: Registro de declaraciones, facturas, proveedores, observaciones y adjuntos PDF/imágenes.
 - **Trazabilidad Total**: Registro de autoría (quién creó y quién modificó cada registro) y fecha/hora exacta en horario de Colombia (`America/Bogota`).
-- **Control Multi-Compañía (Multi-Tenant)**: Aislamiento estricto de datos entre empresas (ej. *Pruebas*, *SI R&R*, *AMERICA TRADING COMPANY SAS*). Cada compañía únicamente visualiza y administra sus propios registros y usuarios.
+- **Control Multi-Compañía (Multi-Tenant)**: Aislamiento estricto de datos entre empresas (ej. *Distribuidores*, *SI R&R*, *AMERICA TRADING COMPANY SAS*). Cada compañía únicamente visualiza y administra sus propios registros y usuarios.
 - **Códigos QR de Alta Eficiencia**: Generación e impresión de etiquetas con código QR para pegar en mercancía física.
 - **Consulta Pública Rápida**: Cualquier transportador, auditor o bodeguero que escanee el código QR físico accede al detalle de la declaración y al documento PDF adjunto **sin necesidad de iniciar sesión**.
 - **Adaptabilidad Móvil**: Interfaz optimizada para teléfonos móviles y tablets (vista de tarjetas, cuadrícula táctil y búsqueda rápida).
@@ -143,7 +143,7 @@ web/
 ### 4.2 Compañías (`ICompany`)
 ```typescript
 {
-  name: string;                   // 'Pruebas', 'SI R&R', etc.
+  name: string;                   // 'Distribuidores', 'SI R&R', 'AMERICA TRADING COMPANY SAS', etc.
   activo: boolean;                // Estado de activación
   createdAt: Date;
   updatedAt: Date;
