@@ -21,6 +21,18 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-13] - Creación de Nuevas Compañías y Gestión de Estados (Activo/Inactivo)
+- **Tipo:** Feature / Multi-Tenant / Gestión de Cuentas
+- **Motivo / Necesidad:** El cliente requería poder dar de alta nuevas compañías directamente desde la interfaz, asignándoles su respectivo usuario administrador inicial y contraseña, así como poder activar o inactivar las compañías ya existentes en el sistema.
+- **Archivos Modificados:**
+  - `api/src/services/auth.services.ts` (Nuevas funciones `createCompanyWithAdmin`, `toggleCompanyStatus` y validación de compañía activa en `loginUser`)
+  - `api/src/routes/auth.routes.ts` (Rutas `POST /auth/companies` y `PATCH /auth/companies/:id/status`)
+  - `web/src/modales/CompaniaAdminsModal.tsx` (Botón "Nueva Compañía", formulario modal con validaciones de contraseña, columna interactiva de Acciones para Activar/Inactivar empresas con diálogo de confirmación moderno y toast de notificación)
+  - `DOCUMENTACION_SISTEMA.md` (Actualización de rutas en la tabla de API)
+- **Impacto y Prevención:** Cuando una compañía se inactiva, ninguno de sus usuarios puede iniciar sesión en el sistema. Se previene que un administrador inactive la compañía en la que se encuentra actualmente conectado para evitar bloqueos accidentales. Se mantiene 100% el aislamiento multi-tenant.
+
+---
+
 ### [2026-11-13] - Protección de Administradores Iniciales, Renombre a "Distribuidores" y Directorio de Compañías
 - **Tipo:** Seguridad / UX / Multi-Tenant
 - **Motivo / Necesidad:**

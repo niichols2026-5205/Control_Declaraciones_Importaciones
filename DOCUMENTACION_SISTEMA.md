@@ -170,6 +170,9 @@ web/
 | `POST` | `/auth/login` | Público | Autentica y entrega token JWT + datos de compañía |
 | `GET` | `/auth/users` | Token (Admin) | Lista usuarios de la misma compañía del admin |
 | `POST` | `/auth/users` | Token (Admin) | Crea un nuevo usuario asociado a la compañía del admin |
+| `GET` | `/auth/system-administrators` | Token (Admin) | Lista consolidada de compañías y sus administradores |
+| `POST` | `/auth/companies` | Token (Admin) | Crea nueva compañía con su usuario administrador inicial |
+| `PATCH` | `/auth/companies/:id/status` | Token (Admin) | Alterna estado Activo/Inactivo de una compañía |
 | `GET` | `/declaraciones` | Token | Lista declaraciones pertenecientes a la compañía del usuario |
 | `POST` | `/declaraciones` | Token | Crea una declaración asociando `company`, `createdBy` y hora local |
 | `POST` | `/declaraciones/bulk` | Token | Creación masiva vía importación de Excel |

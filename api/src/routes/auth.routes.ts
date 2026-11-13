@@ -8,6 +8,8 @@ import {
   getRoles,
   getCompanies,
   getSystemAdministrators,
+  createCompanyWithAdmin,
+  toggleCompanyStatus,
 } from '../services/auth.services';
 import { verifyToken, isAdmin } from '../middlewares/authMiddleware';
 
@@ -103,13 +105,40 @@ router.get('/companies', verifyToken, async (req, res) => {
   }
 });
 
-// Listado consolidado de compañías y administradores del sistema (Sólo Lectura)
+// Listado consolidado de compañías y administradores del sistema
 router.get('/system-administrators', verifyToken, isAdmin, async (req, res) => {
   try {
     const list = await getSystemAdministrators();
     res.status(200).json(list);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Crear una nueva compañía junto con su usuario administrador inicial
+router.post('/companies', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { companyName, adminUsername, password } = req.body;
+    const result = await createCompanyWithAdmin({
+      companyName,
+      adminUsername,
+      password,
+    });
+    res.status(201).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Alternar el estado activo/inactivo de una compañía
+router.patch('/companies/:id/status', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requestingCompanyId = (req as any).user?.companyId;
+    const result = await toggleCompanyStatus(id, requestingCompanyId);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
   }
 });
 

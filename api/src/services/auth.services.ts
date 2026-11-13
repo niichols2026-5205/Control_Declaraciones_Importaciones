@@ -288,8 +288,13 @@ export const loginUser = async (username: string, password: string) => {
     throw new Error('El usuario se encuentra inactivo. Comuníquese con el administrador.');
   }
 
-  const userRoles = (user.roles as any[]).map((role: any) => role.name);
+  // Verificar si la compañía del usuario está activa
   const companyObj = user.company as any;
+  if (companyObj && companyObj.activo === false) {
+    throw new Error('La compañía a la que pertenece esta cuenta se encuentra inactiva. Comuníquese con el administrador del sistema.');
+  }
+
+  const userRoles = (user.roles as any[]).map((role: any) => role.name);
 
   const token = jwt.sign(
     {
@@ -526,7 +531,7 @@ export const getSystemAdministrators = async () => {
     return {
       companyId: company._id,
       companyName: company.name,
-      companyActivo: company.activo,
+      companyActivo: company.activo !== false,
       adminUsername: adminUser ? adminUser.username : 'Sin Administrador',
       adminRoles: adminUser
         ? (adminUser.roles as any[]).map(r => r?.name || 'admin')
@@ -536,4 +541,109 @@ export const getSystemAdministrators = async () => {
       createdAt: (company as any).createdAt,
     };
   });
+};
+
+/**
+ * Crear una nueva compañía junto con su usuario administrador inicial
+ */
+export const createCompanyWithAdmin = async (data: {
+  companyName: string;
+  adminUsername: string;
+  password: string;
+}) => {
+  const cleanCompanyName = data.companyName?.trim();
+  const cleanAdminUsername = data.adminUsername?.trim();
+  const password = data.password?.trim();
+
+  if (!cleanCompanyName || !cleanAdminUsername || !password) {
+    throw new Error(
+      'Todos los campos son obligatorios: Nombre de compañía, usuario administrador y contraseña.',
+    );
+  }
+
+  // Verificar si la compañía ya existe
+  const existingCompany = await Company.findOne({
+    name: { $regex: new RegExp(`^${cleanCompanyName}$`, 'i') },
+  });
+  if (existingCompany) {
+    throw new Error(`La compañía '${cleanCompanyName}' ya existe en el sistema.`);
+  }
+
+  // Verificar si el usuario ya existe
+  const existingUser = await User.findOne({
+    username: { $regex: new RegExp(`^${cleanAdminUsername}$`, 'i') },
+  });
+  if (existingUser) {
+    throw new Error(`El nombre de usuario '${cleanAdminUsername}' ya está en uso.`);
+  }
+
+  // Obtener rol admin
+  let adminRole = await Role.findOne({ name: 'admin' });
+  if (!adminRole) {
+    adminRole = await Role.create({ name: 'admin' });
+  }
+
+  // Crear la compañía
+  const newCompany = await Company.create({
+    name: cleanCompanyName,
+    activo: true,
+  });
+
+  // Crear el usuario administrador inicial
+  const newAdminUser = new User({
+    username: cleanAdminUsername,
+    password,
+    roles: [adminRole._id],
+    company: newCompany._id,
+    activo: true,
+  });
+  await newAdminUser.save();
+
+  // Asegurar que el nuevo administrador quede protegido
+  if (!ROOT_ADMIN_USERNAMES.includes(cleanAdminUsername.toLowerCase())) {
+    ROOT_ADMIN_USERNAMES.push(cleanAdminUsername.toLowerCase());
+  }
+
+  return {
+    message: 'Compañía y usuario administrador creados exitosamente',
+    company: newCompany,
+    user: {
+      _id: newAdminUser._id,
+      username: newAdminUser.username,
+      roles: ['admin'],
+      company: newCompany,
+    },
+  };
+};
+
+/**
+ * Alternar el estado activo/inactivo de una compañía
+ */
+export const toggleCompanyStatus = async (
+  companyId: string,
+  requestingCompanyId?: string,
+) => {
+  const company = await Company.findById(companyId);
+  if (!company) {
+    throw new Error('Compañía no encontrada');
+  }
+
+  const nuevoEstado = !company.activo;
+
+  // Evitar que el administrador inactive su propia compañía activa
+  if (!nuevoEstado && requestingCompanyId && String(requestingCompanyId) === String(company._id)) {
+    throw new Error('No puedes inactivar la compañía en la que estás actualmente conectado.');
+  }
+
+  company.activo = nuevoEstado;
+  await company.save();
+
+  return {
+    message: `Compañía '${company.name}' ${nuevoEstado ? 'activada' : 'inactivada'} exitosamente`,
+    company: {
+      _id: company._id,
+      name: company.name,
+      activo: company.activo,
+    },
+  };
 };
