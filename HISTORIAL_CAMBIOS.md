@@ -21,6 +21,20 @@ Al realizar cualquier cambio futuro, agrega una nueva entrada al inicio de este 
 
 ## 🕒 Registro Cronológico de Cambios
 
+### [2026-11-13] - Alta de Compañía "AMERICA TRADING COMPANY SAS" y Administrador "ATCadmin"
+- **Tipo:** Configuración / Multi-Tenant / Autenticación
+- **Motivo / Necesidad:** El cliente requería habilitar una nueva compañía en el sistema (`AMERICA TRADING COMPANY SAS`) con su respectivo usuario administrador inicial (`ATCadmin` / `admin123`), manteniendo el estricto aislamiento multi-tenant frente a las empresas existentes (`SI R&R` y `Pruebas`).
+- **Archivos Modificados:**
+  - `api/src/services/auth.services.ts`
+  - `DOCUMENTACION_SISTEMA.md`
+- **Detalle de la Solución:**
+  1. Se configuró en `ensureDefaultRoles` la creación y verificación automática de la compañía `AMERICA TRADING COMPANY SAS` y su usuario administrador `ATCadmin` con clave `admin123`, rol `admin` y estado activo.
+  2. Se aseguró la idempotencia del semillero, evitando re-hasheos y escrituras innecesarias en MongoDB si las credenciales ya coinciden.
+  3. Se reforzó `loginUser` con ordenamiento preferencial por compañía (`sort({ company: -1 })`) y limpieza de registros legacy para evitar colisiones entre cuentas con el mismo identificador.
+- **Impacto y Prevención:** El usuario `ATCadmin` queda totalmente aislado bajo su propio `companyId`. Solo podrá visualizar, crear, editar o importar declaraciones de `AMERICA TRADING COMPANY SAS`, y los usuarios que cree quedarán vinculados exclusivamente a dicha empresa. Se verificó que los accesos de `admin` (`SI R&R`) y `PRUEBAS` (`Pruebas`) continúen operando al 100%.
+
+---
+
 ### [2026-11-11] - Reemplazo de Alertas Nativas por Diálogos Modernos y Notificaciones Toast
 - **Tipo:** Mejora de UX / UI
 - **Motivo / Necesidad:** Reemplazar las alertas nativas del navegador (`window.confirm` y `window.alert`), que se veían anticuadas y toscas, por modales de confirmación con diseño moderno y mensajes flotantes (Toast) integrados al sistema de diseño Material-UI.

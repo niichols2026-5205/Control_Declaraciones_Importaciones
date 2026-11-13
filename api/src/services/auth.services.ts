@@ -51,17 +51,40 @@ export const ensureDefaultRoles = async () => {
       await pruebasUser.save();
       console.log('✅ Usuario administrador creado: PRUEBAS (Compañía: Pruebas)');
     } else {
-      pruebasUser.username = 'PRUEBAS';
-      pruebasUser.password = 'PRUEBAS';
-      pruebasUser.company = pruebasCompany._id as any;
-      pruebasUser.roles = adminRole ? [adminRole._id as any] : pruebasUser.roles;
-      pruebasUser.activo = true;
-      await pruebasUser.save();
-      console.log('✅ Usuario administrador actualizado: PRUEBAS / PRUEBAS (Compañía: Pruebas)');
+      let modifiedPruebas = false;
+      const passMatchesPruebas = await pruebasUser.comparePassword('PRUEBAS');
+      if (!passMatchesPruebas) {
+        pruebasUser.password = 'PRUEBAS';
+        modifiedPruebas = true;
+      }
+      if (!pruebasUser.company || String(pruebasUser.company) !== String(pruebasCompany._id)) {
+        pruebasUser.company = pruebasCompany._id as any;
+        modifiedPruebas = true;
+      }
+      if (pruebasUser.activo === false) {
+        pruebasUser.activo = true;
+        modifiedPruebas = true;
+      }
+      if (modifiedPruebas) {
+        await pruebasUser.save();
+        console.log('✅ Usuario administrador verificado/actualizado: PRUEBAS (Compañía: Pruebas)');
+      }
     }
 
     // 4. Usuario Administrador para "SI R&R" (usuario: admin / clave: admin123)
-    let adminUser = await User.findOne({ username: 'admin' });
+    await User.deleteMany({
+      username: { $regex: /^admin$/i },
+      company: { $exists: false },
+    });
+
+    let adminUser = await User.findOne({
+      username: { $regex: /^admin$/i },
+      company: sirrCompany._id,
+    });
+    if (!adminUser) {
+      adminUser = await User.findOne({ username: { $regex: /^admin$/i } });
+    }
+
     if (!adminUser) {
       adminUser = new User({
         username: 'admin',
@@ -72,12 +95,74 @@ export const ensureDefaultRoles = async () => {
       });
       await adminUser.save();
       console.log('✅ Usuario administrador creado: admin (Compañía: SI R&R)');
-    } else if (!adminUser.company) {
-      adminUser.company = sirrCompany._id as any;
-      await adminUser.save();
+    } else {
+      let modifiedAdmin = false;
+      const passMatchesAdmin = await adminUser.comparePassword('admin123');
+      if (!passMatchesAdmin) {
+        adminUser.password = 'admin123';
+        modifiedAdmin = true;
+      }
+      if (!adminUser.company || String(adminUser.company) !== String(sirrCompany._id)) {
+        adminUser.company = sirrCompany._id as any;
+        modifiedAdmin = true;
+      }
+      if (adminUser.activo === false) {
+        adminUser.activo = true;
+        modifiedAdmin = true;
+      }
+      if (modifiedAdmin) {
+        await adminUser.save();
+        console.log('✅ Usuario administrador verificado/actualizado: admin (Compañía: SI R&R)');
+      }
     }
 
-    // 5. Asignar declaraciones existentes sin compañía a "SI R&R"
+    // 5. Compañía "AMERICA TRADING COMPANY SAS" y usuario "ATCadmin" / "admin123"
+    let atcCompany = await Company.findOne({
+      $or: [
+        { name: 'AMERICA TRADING COMPANY SAS' },
+        { name: { $regex: /^america\s*trading\s*company\s*sas$/i } },
+      ],
+    });
+    if (!atcCompany) {
+      atcCompany = await Company.create({ name: 'AMERICA TRADING COMPANY SAS', activo: true });
+      console.log('✅ Compañía creada: AMERICA TRADING COMPANY SAS');
+    }
+
+    let atcUser = await User.findOne({
+      username: { $regex: /^atcadmin$/i },
+    });
+    if (!atcUser) {
+      atcUser = new User({
+        username: 'ATCadmin',
+        password: 'admin123',
+        roles: adminRole ? [adminRole._id] : [],
+        company: atcCompany._id,
+        activo: true,
+      });
+      await atcUser.save();
+      console.log('✅ Usuario administrador creado: ATCadmin (Compañía: AMERICA TRADING COMPANY SAS)');
+    } else {
+      let modifiedAtc = false;
+      const passMatchesAtc = await atcUser.comparePassword('admin123');
+      if (!passMatchesAtc) {
+        atcUser.password = 'admin123';
+        modifiedAtc = true;
+      }
+      if (!atcUser.company || String(atcUser.company) !== String(atcCompany._id)) {
+        atcUser.company = atcCompany._id as any;
+        modifiedAtc = true;
+      }
+      if (atcUser.activo === false) {
+        atcUser.activo = true;
+        modifiedAtc = true;
+      }
+      if (modifiedAtc) {
+        await atcUser.save();
+        console.log('✅ Usuario administrador verificado/actualizado: ATCadmin (Compañía: AMERICA TRADING COMPANY SAS)');
+      }
+    }
+
+    // 6. Asignar declaraciones existentes sin compañía a "SI R&R"
     await Declaraciones.updateMany(
       { company: { $exists: false } },
       {
@@ -164,6 +249,7 @@ export const loginUser = async (username: string, password: string) => {
   const user = await User.findOne({
     username: { $regex: new RegExp(`^${cleanUsername}$`, 'i') },
   })
+    .sort({ company: -1 })
     .populate('roles')
     .populate('company');
 
